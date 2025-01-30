@@ -1,4 +1,4 @@
--- Create Tables
+-- Izveidot tabulas
 CREATE TABLE PASNIEDZEJI (
     PASN_ID INTEGER PRIMARY KEY,
     VARDS VARCHAR2(30),
