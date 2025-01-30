@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register New User</title>
+    <link rel="stylesheet" href="styles_register.css">
+</head>
+<body>
+    <div class="container">
+        <div class="register-box">
+            <!-- Close Button (X) -->
+            <button class="close-btn" onclick="closeForm()">✖</button>
+
+            <h2>Register New User</h2>
+            <form id="registerForm" onsubmit="return validateForm(event)">
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="text" id="username" placeholder="Username" required>
+                <input type="password" id="password" placeholder="Password" required>
+
+                <!-- Error message container -->
+                <div id="errorMessages" class="error-messages"></div>
+
+                <!-- Create Button -->
+                <button type="submit" class="create-btn">Create</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function closeForm() {
+            document.querySelector(".register-box").style.display = "none";
+        }
+
+        // Form Validation Function
+        function validateForm(event) {
+            event.preventDefault(); // Prevent form submission
+            let valid = true;
+            let errorMessages = [];
+            
+            // Get the input values
+            let email = document.getElementById("email").value;
+            let username = document.getElementById("username").value;
+            
+            // Clear previous error messages
+            document.getElementById("errorMessages").innerHTML = "";
+
+            // Validate username
+            if (username.length < 5) {
+                valid = false;
+                errorMessages.push("Lietotājvārda garumam jābūt vismaz 5 simboliem.");
+            }
+
+            // Validate email
+            let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            if (!emailPattern.test(email)) {
+                valid = false;
+                errorMessages.push("Lūdzu ievadiet pareizu epastu.");
+            }
+
+            // Display error messages if any
+            if (!valid) {
+                let errorMessageHTML = "<ul>";
+                errorMessages.forEach(function(msg) {
+                    errorMessageHTML += "<li>" + msg + "</li>";
+                });
+                errorMessageHTML += "</ul>";
+                document.getElementById("errorMessages").innerHTML = errorMessageHTML;
+            }
+
+            return valid; // If valid is true, the form will be submitted, otherwise it won't
+        }
+    </script>
+</body>
+</html>
