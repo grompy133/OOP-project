@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register New User</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles_register.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="register-box">
+            <!-- Close Button (X) -->
+            <button class="close-btn" onclick="closeForm()">✖</button>
+
+            <h2>Reset password</h2>
+            <form id="registerForm" action="/register" method="POST" onsubmit="return validateForm(event)">
+                <input type="email" id="email" name="email" placeholder="Email" required>
+
+                <!-- Error message container -->
+                <div id="errorMessages" class="error-messages"></div>
+
+                <!-- Create Button -->
+                <button type="submit" class="create-btn">Reset</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
