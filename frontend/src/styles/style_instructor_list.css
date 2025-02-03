@@ -1,0 +1,173 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+}
+
+.tabs {
+    display: flex;
+    justify-content: flex-start; /* Align tabs horizontally */
+    margin: 0; /* Remove any space between tabs and content */
+    border-bottom: 2px solid #ddd; /* Add a bottom border to make the tabs look like they are part of the content */
+}
+
+.tab {
+    background-color: #98a4b0;
+    color: white;
+    padding: 15px;
+    cursor: pointer;
+    margin-right: 0; /* Remove space between tabs */
+    text-align: center;
+    border-radius: 5px 5px 0 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: none; /* Remove any border */
+    transition: background-color 0.3s ease; /* Add smooth transition for color change */
+}
+
+.tab h3 {
+    margin: 0;
+}
+
+.tab:hover {
+    background-color: #05478d;
+}
+
+.tab.active {
+    background-color: #007bff; /* Brighter when active */
+}
+
+.tab.inactive {
+    background-color: #98a4b0; /* Darker when inactive (specifically for PROFILE) */
+    cursor: not-allowed; /* Make it look inactive by changing cursor */
+}
+
+.sheet-content {
+    width: 100%;
+    display: none;
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+    margin-top: 0; /* Remove any space between tabs and content */
+}
+
+#instructions {
+    display: block; /* Initially show instructions sheet */
+}
+
+.add-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+.edit-btn {
+    background-color: #f0ad4e;
+    border: none;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color: #d9534f;
+    border: none;
+    cursor: pointer;
+}
+
+#profile-details {
+    margin-top: 20px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.action-btn {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 18px;
+    margin: 0 5px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover effect for buttons */
+.action-btn:hover {
+    background-color: #ddd;
+}
+
+/* Specific styles for each button */
+.edit-btn {
+    background-color: #f0ad4e;
+}
+
+.delete-btn {
+    background-color: #d9534f;
+}
+
+.envelope-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.invite-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+#confirmation-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 18px;
+}
+
+#confirmation-dialog button {
+    background-color: #f0ad4e;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#confirmation-dialog button:hover {
+    background-color: #e0852f;
+}
