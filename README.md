@@ -1,8 +1,7 @@
 front-end structure:
-├── frontend/         # Frontend code (React, Vue, Angular, etc.)
-│   ├── public/      # Static assets (images, fonts)
-│   ├── src/         # Source code
-│   │   ├── components/  # Reusable UI components
+public/      # Static assets (images, fonts)
+src/         # Source code
+  components/  # Reusable UI components
 │   │   ├── pages/       # Page-level components
 │   │   ├── App.js       # Main application component
 │   │   ├── index.js     # Entry point
