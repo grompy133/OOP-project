@@ -171,3 +171,98 @@ th {
 #confirmation-dialog button:hover {
     background-color: #e0852f;
 }
+
+/* Modal Styles */
+.modal {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    display: none; /* Initially hidden */
+    position: fixed;
+    z-index: 1; /* Sit on top of everything */
+    left: 20%;
+    top: 0;
+    width: 30%; /* Full width */
+    height: 70%; /* Full height */
+    background-color: rgba(255, 255, 255, 0); /* Black background with transparency */
+    overflow: auto; /* Enable scroll if needed */
+    padding-top: 60px; /* Position the modal content */
+    display: flex; /* Use flexbox */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column; /* Align items vertically */
+    align-items: center; /* Center items horizontally */
+    position: relative; /* Needed for positioning the close button */
+}
+
+.register-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+/* The Close Button */
+.close-btn {
+    color: #007bff;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute; /* Position it at the top right */
+    top: 10px; /* Adjust the distance from the top */
+    right: 10px; /* Adjust the distance from the right */
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: rgb(0, 28, 139);
+    cursor: pointer;
+}
+
+/* Add space between input fields and button */
+.modal-content input,
+.modal-content label {
+    margin-bottom: 15px; /* Add space below inputs */
+    width: 100%; /* Ensure inputs and label take full width */
+    padding: 10px; /* Increase padding for better readability */
+    font-size: 16px; /* Increase font size */
+}
+
+.modal-content input[type="checkbox"] {
+    margin-right: 10px; /* Add some space between the checkbox and the text */
+    width: auto; /* Ensure the checkbox maintains its default size */
+    height: auto;
+}
+
+/* Make button spacing more consistent */
+.modal-content button {
+    margin-top: 10px; /* Add some space above the button */
+    padding: 12px 20px; /* Increase padding for a better button size */
+    font-size: 16px; /* Increase button font size */
+}
+
+
+/* General button hover effect */
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Specific hover effect for the Save, Add Instructor, and Register buttons */
+.add-btn:hover,
+.register:hover,
+.save-btn:hover {
+    background-color: #0056b3; /* Darker blue for these buttons */
+    color: white; /* Keep the text color white */
+}
