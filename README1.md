@@ -1,5 +1,5 @@
 back-end/
-│── app/                     # Main application package
+│── src/                     # Main application package
 │   ├── __init__.py          # Initializes the app as a package
 │   ├── api/                 # API endpoints
 │   │   ├── __init__.py      
