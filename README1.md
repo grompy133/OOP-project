@@ -25,8 +25,3 @@ back-end/
 │   ├── middlewares/         # Custom middleware (e.g., logging, authentication)
 │   ├── main.py              # Entry point (FastAPI/Flask app)
 │── tests/                   # Unit & integration tests
-│── migrations/              # Database migrations (Alembic)
-│── .env                     # Environment variables
-│── requirements.txt         # Dependencies
-│── Dockerfile               # Docker configuration
-│── README1.md                # Documentation
