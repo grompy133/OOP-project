@@ -1,4 +1,4 @@
-project_name/
+back-end/
 │── app/                     # Main application package
 │   ├── __init__.py          # Initializes the app as a package
 │   ├── api/                 # API endpoints
