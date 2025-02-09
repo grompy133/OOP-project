@@ -104,6 +104,22 @@
         function closeModal() {
             document.getElementById("add-instructor-modal").style.display = "none";
         }
+     // Sorting function for the table
+     function sortTable(columnIndex) {
+            const table = document.getElementById("instructor-table");
+            const rows = Array.from(table.rows).slice(1);  // Get all rows except the header
+
+            rows.sort((a, b) => {
+                const cellA = a.cells[columnIndex].innerText.trim();
+                const cellB = b.cells[columnIndex].innerText.trim();
+                return cellA.localeCompare(cellB);
+            });
+
+            // Reattach sorted rows to the table body
+            rows.forEach(row => table.appendChild(row));
+        }
+
+    
 
        // Add Instructor
 function addInstructor() {
