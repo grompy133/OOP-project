@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasniedzēja Skats</title>
+    <link rel="stylesheet">
+    <script>
+        function openTab(tabName) {
+            let tabs = document.getElementsByClassName("tab-content");
+            let tabButtons = document.getElementsByClassName("tab");
+
+            // Paslēpt visus tab-content elementus
+            for (let tab of tabs) {
+                tab.style.display = "none";
+            }
+
+            // Noņemt "active" klasi no visām cilnēm
+            for (let button of tabButtons) {
+                button.classList.remove("active");
+            }
+
+            // Parādīt izvēlēto cilni
+            document.getElementById(tabName).style.display = "block";
+
+            // Pievienot "active" klasi izvēlētajai cilnei
+            const activeButton = Array.from(tabButtons).find(button => button.innerText.toLowerCase() === tabName);
+            if (activeButton) {
+                activeButton.classList.add("active");
+            }
+        }
+
+        function addSeminar() {
+            // Parādīt popup logu ar semināra pievienošanas formu
+            document.getElementById("add-seminar-popup").style.display = "block";
+        }
+
+        function closeAddSeminarPopup() {
+            // Aizvērt popup logu
+            document.getElementById("add-seminar-popup").style.display = "none";
+        }
+
+        function addNewSeminar() {
+            let seminarName = document.getElementById("seminar-name").value;
+            if (seminarName.trim() !== "") {
+                let seminarList = document.getElementById("seminar-list");
+                let newSeminar = document.createElement("li");
+                let seminarNum = seminarList.children.length + 1;
+                newSeminar.innerHTML = `<a href='#' onclick='openSeminarPopup(${seminarNum}, "${seminarName}")'>${seminarName}</a>`;
+                seminarList.appendChild(newSeminar);
+            }
+            closeAddSeminarPopup(); // Aizvērt popup pēc semināra pievienošanas
+        }
+
+        function openSeminarPopup(seminarNum, seminarName) {
+            // Iestata semināra nosaukumu
+            document.getElementById("seminar-popup-title").innerText = seminarName;
+
+            // Parāda papildlogu ar pogām un tabulu
+            document.getElementById("seminar-popup").style.display = "block";
+        }
+
+        function closeSeminarPopup() {
+            document.getElementById("seminar-popup").style.display = "none";
+        }
+
+        function toggleCheckbox(event) {
+            console.log('Checkbox clicked');
+            let checkbox = event.target;
+            
+            if (checkbox.type === "checkbox") {
+                console.log('Checkbox status changing');
+                checkbox.checked = !checkbox.checked;
+            }
+        }    
+        
+        // Pievieno klikšķa notikumu katram checkboxam, lai pārslēgtu stāvokli, kad tiek klikšķināts uz tabulas rindas
+        window.onload = function() {
+            // Pievieno klikšķa notikumu katram checkbox šūnai
+            document.querySelectorAll('.checkbox-cell').forEach(cell => {
+                cell.addEventListener('click', (e) => {
+                    // Meklē checkbox elementu šūnā
+                    let checkbox = e.target.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        // Pārslēdz checkbox statusu
+                        checkbox.checked = !checkbox.checked;
+                    }
+                });
+            });
+        };
+    </script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        .navbar {
+            display: flex;
+            background-color: #007BFF;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar .tab {
+            background: none;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .navbar .tab:hover {
+            background-color: #0056b3;
+        }
+
+        .navbar .tab.active {
+            background-color: #0056b3;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .container {
+            margin-top: 50px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        .add-button {
+            background-color:rgb(175, 76, 162);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 50%;
+        }
+
+        #seminar-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        #seminar-list li {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        #seminar-list li a {
+            text-decoration: none;
+            color: #000;
+            cursor: pointer;
+        }
+
+        /* Add Seminar Popup */
+        #add-seminar-popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+        }
+
+        #add-seminar-popup input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #add-seminar-popup button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 18px;
+            border-radius: 5px;
+        }
+
+        /* Seminar Popup */
+        #seminar-popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            width: 800px;
+            text-align: center;
+        }
+
+        .seminar-popup-buttons {
+            display: flex;
+            justify-content: space-evenly;
+            margin-bottom: 20px;
+        }
+
+        .seminar-popup-buttons button {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        .checkbox-cell {
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body onload="openTab('seminars')">
+    <div class="navbar">
+        <button class="tab" onclick="openTab('papers')">Papers</button>
+        <button class="tab" onclick="openTab('students')">Students</button>
+        <button class="tab" onclick="openTab('seminars')">Seminars</button>
+        <button class="tab" onclick="openTab('profile')">Profile</button>
+    </div>
+    
+    <div class="container">
+        <div id="papers" class="tab-content">
+            <h2>Rakstu sadaļa</h2>
+            <div id="vards"> </div>
+            <div id="uzvards"> </div>
+            <div id="lietotajvards"> </div>
+        </div>
+        <div id="students" class="tab-content">
+            <h2>Studentu sadaļa</h2>
+            <a href="admin_instructor_list.html">Studentu saraksts</a>
+        </div>        
+        <div id="seminars" class="tab-content">
+            <button class="add-button" onclick="addSeminar()">+</button>
+            <h2>Semināri</h2>
+            <ul id="seminar-list">
+                <li><a href="#" onclick="openSeminarPopup(1, 'Seminārs 1')">Seminars #1</a></li>
+                <li><a href="#" onclick="openSeminarPopup(2, 'Seminārs 2')">Seminars #2</a></li>
+                <li><a href="#" onclick="openSeminarPopup(3, 'Seminārs 3')">Seminars #3</a></li>
+                <li><a href="#" onclick="openSeminarPopup(4, 'Seminārs 4')">Seminars #4</a></li>
+            </ul>
+        </div>
+        <div id="profile" class="tab-content">
+            <h2>Profils</h2>
+            <table>
+                <tr><td>Name:</td><td>{{ pasniedzejs.name }}</td></tr>
+                <tr><td>Surname:</td><td>{{ pasniedzejs.surname }}</td></tr>
+                <tr><td>User name:</td><td>{{ pasniedzejs.username }}</td></tr>
+                <tr><td>Email:</td><td>{{ pasniedzejs.email }}</td></tr>
+                <tr><td>Password:</td><td><input type="password" value="{{ pasniedzejs.password }}" readonly></td></tr>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Add Seminar Popup -->
+    <div id="add-seminar-popup">
+        <h3>Add Seminar</h3>
+        <input type="text" id="seminar-name" placeholder="Semināra nosaukums">
+        <button onclick="addNewSeminar()">Add</button>
+        <button onclick="closeAddSeminarPopup()">Cancel</button>
+    </div>
+
+    <!-- Seminar Popup -->
+    <div id="seminar-popup">
+        <h3 id="seminar-popup-title"></h3>
+
+        <div class="seminar-popup-buttons">
+            <button>Evaluation parameters</button>
+            <button>Dates</button>
+            <button>Download presentations</button>
+            <button>Export grades</button>
+            <button>Create teams</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Nr.</th>
+                    <th>Paper</th>
+                    <th>Student name</th>
+                    <th>Team name</th>
+                    <th>Present</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>Paper 1</td>
+                    <td>John Doe</td>
+                    <td>Team A</td>
+                    <td class="checkbox-cell"><input type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>Paper 2</td>
+                    <td>Jane Smith</td>
+                    <td>Team B</td>
+                    <td class="checkbox-cell"><input type="checkbox"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button onclick="closeSeminarPopup()">Aizvērt</button>
+    </div>
+</body>
+</html>

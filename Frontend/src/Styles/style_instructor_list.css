@@ -1,0 +1,268 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+}
+
+.tabs {
+    display: flex;
+    justify-content: flex-start; /* Align tabs horizontally */
+    margin: 0; /* Remove any space between tabs and content */
+    border-bottom: 2px solid #ddd; /* Add a bottom border to make the tabs look like they are part of the content */
+}
+
+.tab {
+    background-color: #98a4b0;
+    color: white;
+    padding: 15px;
+    cursor: pointer;
+    margin-right: 0; /* Remove space between tabs */
+    text-align: center;
+    border-radius: 5px 5px 0 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: none; /* Remove any border */
+    transition: background-color 0.3s ease; /* Add smooth transition for color change */
+}
+
+.tab h3 {
+    margin: 0;
+}
+
+.tab:hover {
+    background-color: #05478d;
+}
+
+.tab.active {
+    background-color: #007bff; /* Brighter when active */
+}
+
+.tab.inactive {
+    background-color: #98a4b0; /* Darker when inactive (specifically for PROFILE) */
+    cursor: not-allowed; /* Make it look inactive by changing cursor */
+}
+
+.sheet-content {
+    width: 100%;
+    display: none;
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+    margin-top: 0; /* Remove any space between tabs and content */
+}
+
+#instructions {
+    display: block; /* Initially show instructions sheet */
+}
+
+.add-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+.edit-btn {
+    background-color: #f0ad4e;
+    border: none;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color: #d9534f;
+    border: none;
+    cursor: pointer;
+}
+
+#profile-details {
+    margin-top: 20px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.action-btn {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 18px;
+    margin: 0 5px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover effect for buttons */
+.action-btn:hover {
+    background-color: #ddd;
+}
+
+/* Specific styles for each button */
+.edit-btn {
+    background-color: #f0ad4e;
+}
+
+.delete-btn {
+    background-color: #d9534f;
+}
+
+.envelope-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.invite-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+#confirmation-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 18px;
+}
+
+#confirmation-dialog button {
+    background-color: #f0ad4e;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#confirmation-dialog button:hover {
+    background-color: #e0852f;
+}
+
+/* Modal Styles */
+.modal {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    display: none; /* Initially hidden */
+    position: fixed;
+    z-index: 1; /* Sit on top of everything */
+    left: 20%;
+    top: 0;
+    width: 30%; /* Full width */
+    height: 70%; /* Full height */
+    background-color: rgba(255, 255, 255, 0); /* Black background with transparency */
+    overflow: auto; /* Enable scroll if needed */
+    padding-top: 60px; /* Position the modal content */
+    display: flex; /* Use flexbox */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column; /* Align items vertically */
+    align-items: center; /* Center items horizontally */
+    position: relative; /* Needed for positioning the close button */
+}
+
+.register-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+/* The Close Button */
+.close-btn {
+    color: #007bff;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute; /* Position it at the top right */
+    top: 10px; /* Adjust the distance from the top */
+    right: 10px; /* Adjust the distance from the right */
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: rgb(0, 28, 139);
+    cursor: pointer;
+}
+
+/* Add space between input fields and button */
+.modal-content input,
+.modal-content label {
+    margin-bottom: 15px; /* Add space below inputs */
+    width: 100%; /* Ensure inputs and label take full width */
+    padding: 10px; /* Increase padding for better readability */
+    font-size: 16px; /* Increase font size */
+}
+
+.modal-content input[type="checkbox"] {
+    margin-right: 10px; /* Add some space between the checkbox and the text */
+    width: auto; /* Ensure the checkbox maintains its default size */
+    height: auto;
+}
+
+/* Make button spacing more consistent */
+.modal-content button {
+    margin-top: 10px; /* Add some space above the button */
+    padding: 12px 20px; /* Increase padding for a better button size */
+    font-size: 16px; /* Increase button font size */
+}
+
+
+/* General button hover effect */
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Specific hover effect for the Save, Add Instructor, and Register buttons */
+.add-btn:hover,
+.register:hover,
+.save-btn:hover {
+    background-color: #0056b3; /* Darker blue for these buttons */
+    color: white; /* Keep the text color white */
+}
