@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instructor Management</title>
-    <link rel="stylesheet" href="style_instructor_list.css">
+    <title>Admin Management</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_instructor_list.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
     <div class="container">
+        <!-- Tabs for Instructions and Profile -->
         <div class="tabs">
             <div class="tab active" id="instructions-tab" onclick="showTab('instructions')">
                 <h3>INSTRUCTIONS</h3>
@@ -18,7 +19,7 @@
             </div>
         </div>
 
-        <!-- INSTRUCTIONS sheet content -->
+        <!-- INSTRUCTIONS Tab Content -->
         <div id="instructions" class="sheet-content">
             <button class="add-btn" onclick="toggleAddInstructor()">+ Add Instructor</button>
             <div id="add-instructor-modal" class="modal" style="display:none;">
@@ -51,12 +52,16 @@
             </div>
         </div>
 
-        <!-- PROFILE sheet content -->
-        <div id="profile" class="sheet-content" style="display:none;">
-            <p>Click on an instructor's name to view their profile details here.</p>
-            <div id="profile-details">
-                <!-- Profile details will be shown here dynamically -->
-            </div>
+        <!-- PROFILE Tab Content -->
+        <div id="profile" class="sheet-content" style="display: none;">
+            <h2>Profils</h2>
+            <table>
+                <tr><td>Name:</td><td>{{ admin.name }}</td></tr>
+                <tr><td>Surname:</td><td>{{ admin.surname }}</td></tr>
+                <tr><td>User name:</td><td>{{ admin.username }}</td></tr>
+                <tr><td>Email:</td><td>{{ admin.email }}</td></tr>
+                <tr><td>Password:</td><td><input type="password" value="{{ admin.password }}" readonly></td></tr>
+            </table>
         </div>
 
         <!-- Confirmation Dialog -->
@@ -66,16 +71,20 @@
             <button onclick="cancelDelete()">No</button>
         </div>
     </div>
+    
 
     <script>
         // Switch between the INSTRUCTIONS and PROFILE tabs
         function showTab(tabName) {
+            // Hide all tab content
             document.getElementById("instructions").style.display = "none";
             document.getElementById("profile").style.display = "none";
 
+            // Remove active class from all tabs
             document.getElementById("instructions-tab").classList.remove("active");
             document.getElementById("profile-tab").classList.remove("active");
 
+            // Show the selected tab content and mark the tab as active
             if (tabName === "instructions") {
                 document.getElementById("instructions").style.display = "block";
                 document.getElementById("instructions-tab").classList.add("active");
@@ -95,167 +104,8 @@
         function closeModal() {
             document.getElementById("add-instructor-modal").style.display = "none";
         }
-
-        // Add Instructor
-        function addInstructor() {
-    let name = document.getElementById("new-name").value;
-    let surname = document.getElementById("new-surname").value;
-    let email = document.getElementById("new-email").value;
-    let sendEmail = document.getElementById("send-email").checked;
-
-    // Pārbaude, vai visi lauki ir aizpildīti
-    if (!name || !surname || !email) {
-        alert("Lūdzu, aizpildiet visus laukus!");
-        return;
-    }
-
-    // Pārbaude, vai pasniedzējs jau eksistē
-    let tableRows = document.querySelectorAll('#instructor-table-body tr');
-    for (let row of tableRows) {
-        let existingSurname = row.cells[1].innerText;
-        let existingName = row.cells[2].innerText;
-        if (existingName === name && existingSurname === surname) {
-            alert("Pasniedzējs ar šādu vārdu un uzvārdu jau eksistē");
-            return;
-        }
-    }
-
-    // Pārbaude, vai vārds un uzvārds satur tikai burtus
-    const nameRegex = /^[A-Za-z]+$/;
-    if (!nameRegex.test(name)) {
-        alert("Lūdzu ievadiet tikai burtus vārdā!");
-        return;
-    }
-
-    if (!nameRegex.test(surname)) {
-        alert("Lūdzu ievadiet tikai burtus uzvārdā!");
-        return;
-    }
-
-    // Pārbaude, vai e-pasta adrese ir derīga
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        alert("Lūdzu ievadiet pareizu e-pasta adresi");
-        return;
-    }
-
-    // Ja viss ir pareizi, pievienojam pasniedzēju tabulai
-    let tableBody = document.getElementById("instructor-table-body");
-    let newRow = tableBody.insertRow();
-
-    let newRowId = tableBody.rows.length;
-    newRow.setAttribute('data-id', newRowId);  // Add a unique ID to the row
-
-    newRow.innerHTML =
-        `<td>
-            <button class="action-btn envelope-btn" data-id="${newRowId}"><i class="fas fa-envelope"></i></button>
-            <button class="action-btn edit-btn" data-id="${newRowId}"><i class="fas fa-edit"></i></button>
-            <button class="action-btn delete-btn" data-id="${newRowId}"><i class="fas fa-times-circle"></i></button>
-            <button class="action-btn invite-btn" data-id="${newRowId}"><i class="fas fa-paper-plane"></i></button>
-        </td>
-        <td>${surname}</td>
-        <td>${name}</td>
-        <td>${email}</td>`;
-
-    // Reset form fields after adding
-    document.getElementById("new-name").value = '';
-    document.getElementById("new-surname").value = '';
-    document.getElementById("new-email").value = '';
-
-    // Close the modal
-    closeModal();
-
-    var mailString = 'Hello! You have been added as a new instructor.\n Welcome, ';
-    if (sendEmail) {
-        window.location.href = `mailto:${email}?subject=New Instructor&body=${mailString}${name} ${surname}!`;
-    }
-
-    // Rebind event listeners to the new buttons after adding
-    addEventListenersToNewRow(newRowId);
-}
-
-        // Attach event delegation for dynamic buttons
-        document.getElementById('instructor-table-body').addEventListener('click', function(event) {
-            const target = event.target;
-            const rowId = target.closest('tr')?.getAttribute('data-id'); // Get the row ID from the closest row
-
-            if (!rowId) return; // If there is no rowId, exit early (click not on a valid row)
-
-            if (target.classList.contains('edit-btn')) {
-                editInstructor(rowId);
-            } else if (target.classList.contains('delete-btn')) {
-                confirmDelete(rowId);
-            } else if (target.classList.contains('envelope-btn')) {
-                const email = target.closest('tr').cells[3].innerText;
-                sendEmail(email);
-            } else if (target.classList.contains('invite-btn')) {
-                const email = target.closest('tr').cells[3].innerText;
-                sendInvitation(email);
-            }
-        });
-
-        // Save edited instructor details
-        function saveInstructor(rowId) {
-            const row = document.querySelector(`[data-id='${rowId}']`);
-            const cells = row.getElementsByTagName("td");
-
-            // Get new values from input fields
-            let newSurname = document.getElementById(`edit-surname-${rowId}`).value;
-            let newName = document.getElementById(`edit-name-${rowId}`).value;
-            let newEmail = document.getElementById(`edit-email-${rowId}`).value;
-
-            // Set new values back to table cells
-            cells[1].innerText = newSurname;
-            cells[2].innerText = newName;
-            cells[3].innerText = newEmail;
-
-            // Restore action buttons without save button
-            cells[0].innerHTML = `
-                <button class='action-btn envelope-btn' onclick='sendEmail("${newEmail}")'>
-                    <i class='fas fa-envelope'></i>
-                </button>
-                <button class='action-btn edit-btn' onclick='editInstructor("${rowId}")'>
-                    <i class='fas fa-edit'></i>
-                </button>
-                <button class='action-btn delete-btn' onclick='confirmDelete("${rowId}")'>
-                    <i class='fas fa-times-circle'></i>
-                </button>
-                <button class='action-btn invite-btn' onclick='sendInvitation("${newEmail}")'>
-                    <i class='fas fa-paper-plane'></i>
-                </button>
-            `;
-        }
-
-        // Trigger edit mode for an instructor's details
-        function editInstructor(rowId) {
-            const row = document.querySelector(`[data-id='${rowId}']`);
-            const cells = row.getElementsByTagName("td");
-
-            // Prevent multiple save buttons
-            if (row.querySelector(".save-btn")) return;
-
-            // Get current values
-            let surname = cells[1].innerText;
-            let name = cells[2].innerText;
-            let email = cells[3].innerText;
-
-            // Replace content with input fields
-            cells[1].innerHTML = `<input type='text' id='edit-surname-${rowId}' value='${surname}'>`;
-            cells[2].innerHTML = `<input type='text' id='edit-name-${rowId}' value='${name}'>`;
-            cells[3].innerHTML = `<input type='text' id='edit-email-${rowId}' value='${email}'>`;
-
-            // Add save button next to existing buttons
-            let actionButtons = cells[0].innerHTML;
-            cells[0].innerHTML = `
-                ${actionButtons}
-                <button class='action-btn save-btn' onclick='saveInstructor("${rowId}")'>
-                    Save
-                </button>
-            `;
-        }
-
-        // Sorting function for the table
-        function sortTable(columnIndex) {
+     // Sorting function for the table
+     function sortTable(columnIndex) {
             const table = document.getElementById("instructor-table");
             const rows = Array.from(table.rows).slice(1);  // Get all rows except the header
 
@@ -269,47 +119,226 @@
             rows.forEach(row => table.appendChild(row));
         }
 
+    
+
+       // Add Instructor
+function addInstructor() {
+    let name = document.getElementById("new-name").value;
+    let surname = document.getElementById("new-surname").value;
+    let email = document.getElementById("new-email").value;
+    let sendEmail = document.getElementById("send-email").checked;
+
+    // Validation
+    if (!name || !surname || !email) {
+        alert("Please fill in all fields!");
+        return;
+    }
+
+    // Send data to the backend to add the instructor
+    fetch('/admin/add_instructor', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name, surname, email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add new instructor to the table dynamically
+            let tableBody = document.getElementById("instructor-table-body");
+            let newRow = tableBody.insertRow();
+            newRow.innerHTML = `
+                <td>
+                    <button class="action-btn envelope-btn" onclick="sendEmail('${email}')"><i class="fas fa-envelope"></i></button>
+                    <button class="action-btn edit-btn" onclick="editInstructor(this)"><i class="fas fa-edit"></i></button>
+                    <button class="action-btn delete-btn" onclick="confirmDelete(this)"><i class="fas fa-times-circle"></i></button>
+                    <button class="action-btn invite-btn" onclick="sendInvitation('${email}')"><i class="fas fa-paper-plane"></i></button>
+                </td>
+                <td>${surname}</td>
+                <td>${name}</td>
+                <td>${email}</td>
+            `;
+
+            // Clear form fields and close modal
+            document.getElementById("new-name").value = '';
+            document.getElementById("new-surname").value = '';
+            document.getElementById("new-email").value = '';
+            closeModal();
+
+            // Send email if checkbox is checked
+            if (sendEmail) {
+                let mailString = `Hello! You have been added as a new instructor. Welcome, ${name} ${surname}!`;
+                window.location.href = `mailto:${email}?subject=New Instructor&body=${mailString}`;
+            }
+        } else {
+            alert("Error adding instructor: " + data.error);
+        }
+    })
+    .catch(error => {
+        console.error("Error adding instructor:", error);
+        alert("An error occurred while adding the instructor.");
+    });
+}
+
+// Edit Instructor
+function editInstructor(button) {
+    let row = button.closest('tr');
+    let cells = row.cells;
+    let instructorId = row.getAttribute('data-id'); // Capture the instructor ID
+
+    // Replace text with input fields
+    cells[1].innerHTML = `<input type="text" value="${cells[1].innerText}">`;
+    cells[2].innerHTML = `<input type="text" value="${cells[2].innerText}">`;
+    cells[3].innerHTML = `<input type="text" value="${cells[3].innerText}">`;
+
+    // Add a save button next to existing buttons instead of replacing them
+    let actionCell = cells[0];
+    if (!actionCell.querySelector('.save-btn')) {
+        let saveButton = document.createElement("button");
+        saveButton.classList.add("action-btn", "save-btn");
+        saveButton.innerText = "Save";
+        saveButton.onclick = function() { saveInstructor(this, instructorId); };
+
+        actionCell.appendChild(saveButton);
+    }
+}
+
+function saveInstructor(button, instructorId) {
+    let row = button.closest('tr');
+    let cells = row.cells;
+
+    // Get new values
+    let surname = cells[1].querySelector('input').value;
+    let name = cells[2].querySelector('input').value;
+    let email = cells[3].querySelector('input').value;
+
+    // Validate new values
+    if (!name || !surname || !email) {
+        alert("All fields are required!");
+        return;
+    }
+
+    // Send updated data to the backend
+    fetch('/admin/edit_instructor', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: instructorId, name, surname, email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Replace input fields with text in the table
+            cells[1].innerText = surname;
+            cells[2].innerText = name;
+            cells[3].innerText = email;
+
+            // Restore action buttons
+            cells[0].innerHTML = `
+                <button class="action-btn envelope-btn" onclick="sendEmail('${email}')"><i class="fas fa-envelope"></i></button>
+                <button class="action-btn edit-btn" onclick="editInstructor(this)"><i class="fas fa-edit"></i></button>
+                <button class="action-btn delete-btn" onclick="confirmDelete(this)"><i class="fas fa-times-circle"></i></button>
+                <button class="action-btn invite-btn" onclick="sendInvitation('${email}')"><i class="fas fa-paper-plane"></i></button>
+            `;
+        } else {
+            alert("Error updating instructor: " + data.error);
+        }
+    })
+    .catch(error => {
+        console.error("Error updating instructor:", error);
+        alert("An error occurred while updating the instructor.");
+    });
+}
+
+// Confirm deletion of an instructor
+function confirmDelete(button) {
+    let row = button.closest('tr');
+    let name = row.cells[2].innerText; // Extract name from the table row
+    let surname = row.cells[1].innerText; // Extract surname from the table row
+
+    // Store instructor data for deletion
+    window.instructorDataToDelete = { name, surname };
+    
+    // Show confirmation dialog
+    document.getElementById("confirmation-dialog").style.display = "flex";
+    window.rowToDelete = row;  // Store the row reference to remove it later
+}
+
+// Delete the instructor
+function deleteInstructor() {
+    console.log(window.instructorDataToDelete);  // Add this line to check if the data is correct
+    fetch('/admin/delete_instructor', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(window.instructorDataToDelete)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.rowToDelete.remove(); // Remove the instructor row from the table
+            document.getElementById("confirmation-dialog").style.display = "none"; // Hide confirmation
+        } else {
+            alert("Error deleting instructor: " + data.error);
+        }
+    })
+    .catch(error => {
+        console.error("Error deleting instructor:", error);
+        alert("An error occurred while deleting the instructor.");
+    });
+}
+
+// Cancel delete action
+function cancelDelete() {
+    document.getElementById("confirmation-dialog").style.display = "none";
+}
+
+
         // Send email using the default email client
         function sendEmail(email) {
             window.location.href = `mailto:${email}`;
         }
 
-        // Confirm deletion of an instructor
-        function confirmDelete(rowId) {
-            document.getElementById("confirmation-dialog").style.display = "flex";
-            window.currentRowId = rowId;
-        }
-
-        // Delete the instructor
-        function deleteInstructor() {
-            const row = document.querySelector(`[data-id='${window.currentRowId}']`);
-            row.remove();
-            document.getElementById("confirmation-dialog").style.display = "none";
-        }
-
-        // Cancel delete action
-        function cancelDelete() {
-            document.getElementById("confirmation-dialog").style.display = "none";
-        }
-
-        // Send invitation to instructor (just a mock-up here)
+        // Send invitation to instructor (mock-up)
         function sendInvitation(email) {
             alert(`Invitation sent to ${email}`);
         }
 
-        // Rebind event listeners to newly added rows
-        function addEventListenersToNewRow(rowId) {
-            const row = document.querySelector(`[data-id='${rowId}']`);
-            const editButton = row.querySelector('.edit-btn');
-            const deleteButton = row.querySelector('.delete-btn');
-            const envelopeButton = row.querySelector('.envelope-btn');
-            const inviteButton = row.querySelector('.invite-btn');
+        // Initialize the page with the Instructions tab open
+        showTab('instructions');
 
-            editButton.addEventListener('click', () => editInstructor(rowId));
-            deleteButton.addEventListener('click', () => confirmDelete(rowId));
-            envelopeButton.addEventListener('click', () => sendEmail(row.querySelector('td:nth-child(4)').innerText));
-            inviteButton.addEventListener('click', () => sendInvitation(row.querySelector('td:nth-child(4)').innerText));
-        }
+        function fetchAdmins() {
+    fetch('/admin/get_admins')  // Updated URL to match the blueprint prefix
+        .then(response => response.json())
+        .then(data => {
+            let tableBody = document.getElementById("instructor-table-body");
+            tableBody.innerHTML = "";  // Clear table
+
+            data.forEach(admin => {
+                let row = tableBody.insertRow();
+                row.setAttribute("data-id", admin.id);  // Store the instructor ID in the row
+                row.innerHTML = `
+                    <td>
+                        <button class="action-btn envelope-btn" onclick="sendEmail('${admin.email}')"><i class="fas fa-envelope"></i></button>
+                        <button class="action-btn edit-btn" onclick="editInstructor(this)"><i class="fas fa-edit"></i></button>
+                        <button class="action-btn delete-btn" onclick="confirmDelete(this)"><i class="fas fa-times-circle"></i></button>
+                        <button class="action-btn invite-btn" onclick="sendInvitation('${admin.email}')"><i class="fas fa-paper-plane"></i></button>
+                    </td>
+                    <td>${admin.surname}</td>
+                    <td>${admin.name}</td>
+                    <td>${admin.email}</td>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching admins:", error);
+            alert("An error occurred while fetching the instructors.");
+        });
+}
+
+fetchAdmins();
+
     </script>
 </body>
 </html>
