@@ -1,4 +1,4 @@
-OOP-project/
+OOP-project/main/
 ├── Backend/
 │   ├── src/
 │   │   ├── admini.py
@@ -50,5 +50,5 @@ OOP-project/
 │   │   ├── paroles_atjau.html
 │   │   ├── pasniedzejs.py
 │   ├── Bibioteka.sql
-│   ├── README.md
-│   ├── README.md
+├── README.md
+├── README.md
