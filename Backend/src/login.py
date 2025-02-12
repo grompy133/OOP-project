@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, s
 import cx_Oracle
 import os
 from admini import admin_bp
+from pasniedzejs import pasn_bp
 
 app = Flask(
     __name__,
@@ -25,6 +26,7 @@ def get_db_connection():
         return None
 
 app.register_blueprint(admin_bp, url_prefix='/admin')
+app.register_blueprint(pasn_bp, url_prefix='/pasniedzejs')
 
 # Lietotāja klase
 class User:
