@@ -39,7 +39,7 @@
                 <table id="instructor-table">
                     <thead>
                         <tr>
-                            <th onclick="sortTable(0)">Actions</th>
+                            <th>Actions</th>
                             <th onclick="sortTable(1)">Surname</th>
                             <th onclick="sortTable(2)">Name</th>
                             <th onclick="sortTable(3)">Email</th>
@@ -104,24 +104,56 @@
         function closeModal() {
             document.getElementById("add-instructor-modal").style.display = "none";
         }
-     // Sorting function for the table
-     function sortTable(columnIndex) {
-            const table = document.getElementById("instructor-table");
-            const rows = Array.from(table.rows).slice(1);  // Get all rows except the header
+        let currentSortColumn = null;
+let isAscending = true;
 
-            rows.sort((a, b) => {
-                const cellA = a.cells[columnIndex].innerText.trim();
-                const cellB = b.cells[columnIndex].innerText.trim();
-                return cellA.localeCompare(cellB);
-            });
+function sortTable(columnIndex) {
+    // Ja kolonna ir "Actions" (pirmā kolonna), neko nedarām
+    if (columnIndex === 0) return;
 
-            // Reattach sorted rows to the table body
-            rows.forEach(row => table.appendChild(row));
+    const table = document.getElementById("instructor-table");
+    const rows = Array.from(table.rows).slice(1); // Izņemam header rindu
+    const headerCells = table.getElementsByTagName("th");
+
+    // Noņemam esošās bultiņas no citām kolonnām
+    for (let i = 0; i < headerCells.length; i++) {
+        if (i !== columnIndex) {
+            headerCells[i].classList.remove("asc", "desc");
         }
+    }
+
+    // Mainām kārtošanas secību, ja tiek noklikšķināts uz vienas un tās pašas kolonnas
+    if (currentSortColumn === columnIndex) {
+        isAscending = !isAscending;
+    } else {
+        isAscending = true;
+    }
+
+    // Saglabājam pašreizējo kolonnu
+    currentSortColumn = columnIndex;
+
+    // Kārtojam rindas
+    rows.sort((a, b) => {
+        const cellA = a.cells[columnIndex].innerText.trim();
+        const cellB = b.cells[columnIndex].innerText.trim();
+        return isAscending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+    });
+
+    // Pievienojam sakārtotās rindas atpakaļ tabulā
+    rows.forEach(row => table.tBodies[0].appendChild(row));
+
+    // Pievienojam bultiņu virzienu
+    if (isAscending) {
+        headerCells[columnIndex].classList.remove("desc");
+        headerCells[columnIndex].classList.add("asc");
+    } else {
+        headerCells[columnIndex].classList.remove("asc");
+        headerCells[columnIndex].classList.add("desc");
+    }
+}
 
     
 
-       // Add Instructor
 function addInstructor() {
     let name = document.getElementById("new-name").value;
     let surname = document.getElementById("new-surname").value;
@@ -148,6 +180,7 @@ function addInstructor() {
             // Add new instructor to the table dynamically
             let tableBody = document.getElementById("instructor-table-body");
             let newRow = tableBody.insertRow();
+            newRow.setAttribute("data-id", data.id); // Set the data-id attribute with the instructor ID
             newRow.innerHTML = `
                 <td>
                     <button class="action-btn envelope-btn" onclick="sendEmail('${email}')"><i class="fas fa-envelope"></i></button>
@@ -198,15 +231,16 @@ function editInstructor(button) {
         let saveButton = document.createElement("button");
         saveButton.classList.add("action-btn", "save-btn");
         saveButton.innerText = "Save";
-        saveButton.onclick = function() { saveInstructor(this, instructorId); };
+        saveButton.onclick = function() { saveInstructor(this); }; // Pass the button to saveInstructor
 
         actionCell.appendChild(saveButton);
     }
 }
 
-function saveInstructor(button, instructorId) {
+function saveInstructor(button) {
     let row = button.closest('tr');
     let cells = row.cells;
+    let instructorId = row.getAttribute('data-id'); // Retrieve the instructor ID from the row
 
     // Get new values
     let surname = cells[1].querySelector('input').value;
@@ -309,7 +343,7 @@ function cancelDelete() {
         showTab('instructions');
 
         function fetchAdmins() {
-    fetch('/admin/get_admins')  // Updated URL to match the blueprint prefix
+    fetch('/admin/get_admins')
         .then(response => response.json())
         .then(data => {
             let tableBody = document.getElementById("instructor-table-body");
@@ -317,7 +351,7 @@ function cancelDelete() {
 
             data.forEach(admin => {
                 let row = tableBody.insertRow();
-                row.setAttribute("data-id", admin.id);  // Store the instructor ID in the row
+                row.setAttribute("data-id", admin.id);  // Ensure the data-id attribute is set
                 row.innerHTML = `
                     <td>
                         <button class="action-btn envelope-btn" onclick="sendEmail('${admin.email}')"><i class="fas fa-envelope"></i></button>
