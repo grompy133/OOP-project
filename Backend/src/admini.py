@@ -58,9 +58,25 @@ def add_instructor():
 
     try:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO PASNIEDZEJI (VARDS, UZVARDS, EPASTS) VALUES (:1, :2, :3)", (name, surname, email))
+
+        # Define a variable to hold the returned ID
+        instructor_id = cursor.var(cx_Oracle.NUMBER)
+
+        # Insert the new instructor and return the generated ID
+        cursor.execute(
+            "INSERT INTO PASNIEDZEJI (VARDS, UZVARDS, EPASTS) VALUES (:1, :2, :3) RETURNING PASN_ID INTO :4",
+            (name, surname, email, instructor_id)
+        )
         conn.commit()
-        return jsonify({"success": True, "message": "Instructor added successfully!"})
+
+        # Fetch the generated ID
+        instructor_id = instructor_id.getvalue()[0]
+
+        return jsonify({
+            "success": True,
+            "id": instructor_id,
+            "message": "Instructor added successfully!"
+        })
     except cx_Oracle.DatabaseError as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 500
