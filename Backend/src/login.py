@@ -1,9 +1,14 @@
 import hashlib # lai varētu paroli hash
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 import cx_Oracle
+import os
 from admini import admin_bp
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=os.path.abspath('../../Frontend/src/Pages'),  # Veidņu mape
+    static_folder=os.path.abspath('../../Frontend/src/Styles')    # Statisko failu mape
+)
 app.secret_key = 'your_secret_key'
 
 # Datu bāzes savienojuma parametri
