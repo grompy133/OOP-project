@@ -100,11 +100,6 @@ def login():
 
     return jsonify({"success": False, "message": "Nepareizs lietotājvārds vai parole"}), 401
 
-# @app.route('/teacher_page')
-# def teacher_page():
-#     if session.get('user_type') == 'pasniedzējs': # Pārbauda, vai sesijā ir pasniedzējs
-#         return render_template('teacher_page.html')
-#     return redirect(url_for('index')) # Pāradresē uz sākumlapu, ja nav pasniedzējs
 @app.route('/teacher_page')
 def teacher_page():
     if session.get('user_type') == 'pasniedzējs':  # Ensure the user is a teacher
@@ -142,11 +137,6 @@ def teacher_page():
     
     return redirect(url_for('index'))  # Redirect to the login page if the user is not a teacher
 
-# @app.route('/student_page')
-# def student_page():
-#     if session.get('user_type') == 'students': # Pārbauda, vai sesijā ir students
-#         return render_template('student_page.html')
-#     return redirect(url_for('index')) # Pāradresē uz sākumlapu, ja nav students
 @app.route('/student_page')
 def student_page():
     if session.get('user_type') == 'students':  # Tikai studentiem
@@ -177,11 +167,6 @@ def student_page():
     
     return redirect(url_for('index'))  # Ja nav students, sūta atpakaļ uz sākumlapu
 
-# @app.route('/admin_instructor_list')
-# def admin_instructor_list():
-#     if session.get('user_type') == 'administrators': # Pārbauda, vai sesijā ir administrators
-#         return render_template('admin_instructor_list.html')
-#    return redirect(url_for('index')) # Pāradresē uz sākumlapu, ja nav administrators
 @app.route('/admin_page')
 def admin_page():
     if session.get('user_type') == 'administrators':  # Tikai administratoriem
