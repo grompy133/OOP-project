@@ -81,21 +81,22 @@ def index():
 
 @app.route('/login', methods=['POST'])
 def login():
-    email_or_username = request.form.get('email_or_username')  # Pieņem gan e-pastu vai lietotājvārdu no formas
-    password = request.form.get('password')  # Iegūst paroli no formas
+    email_or_username = request.form.get('email_or_username')
+    password = request.form.get('password')
 
-    user = User.authenticate(email_or_username, password)  # Mēģina autentificēt lietotāju
+    user = User.authenticate(email_or_username, password)  # Authenticate the user
 
     if user:
-        session['user_id'] = user.user_id  # Saglabā lietotāja ID sesijā
-        session['user_type'] = user.user_type  # Saglabā lietotāja tipu sesijā
+        session['user_id'] = user.user_id  # Store the user's ID in the session
+        session['user_type'] = user.user_type  # Store the user's type in the session
+        print(f"Session after login: user_id={session['user_id']}, user_type={session['user_type']}")  # Debugging
 
         if user.user_type == 'administrators':
-            return redirect(url_for('admin_page'))  # Pāradresē uz admin lapu
+            return redirect(url_for('admin_page'))  # Redirect to admin page
         elif user.user_type == 'pasniedzējs':
-            return redirect(url_for('teacher_page'))  # Pāradresē pasniedzēju
+            return redirect(url_for('teacher_page'))  # Redirect to teacher page
         elif user.user_type == 'students':
-            return redirect(url_for('student_page'))  # Pāradresē studentu
+            return redirect(url_for('student_page'))  # Redirect to student page
 
     return jsonify({"success": False, "message": "Nepareizs lietotājvārds vai parole"}), 401
 
@@ -106,20 +107,24 @@ def login():
 #     return redirect(url_for('index')) # Pāradresē uz sākumlapu, ja nav pasniedzējs
 @app.route('/teacher_page')
 def teacher_page():
-    if session.get('user_type') == 'pasniedzējs':  # Tikai pasniedzējiem
-        user_id = session.get('user_id')
+    if session.get('user_type') == 'pasniedzējs':  # Ensure the user is a teacher
+        user_id = session.get('user_id')  # Get the logged-in teacher's ID from the session
+        print(f"Fetching data for teacher with ID: {user_id}")  # Debugging
+
         connection = get_db_connection()
-        
         if connection:
             cursor = connection.cursor()
             try:
+                # Fetch the teacher's data from the database
                 cursor.execute("""
                     SELECT VARDS, UZVARDS, LIETOTAJVARDS, EPASTS, PAROLE
                     FROM PASNIEDZEJI WHERE PASN_ID = :1
                 """, (user_id,))
                 user_data = cursor.fetchone()
+                print(f"Fetched teacher data: {user_data}")  # Debugging
                 
                 if user_data:
+                    # Create a dictionary with the teacher's data
                     pasniedzejs = {
                         "name": user_data[0],
                         "surname": user_data[1],
@@ -127,12 +132,15 @@ def teacher_page():
                         "email": user_data[3],
                         "password": user_data[4]
                     }
+                    # Render the template with the teacher's data
                     return render_template('teacher_page.html', pasniedzejs=pasniedzejs)
+                else:
+                    return "Teacher data not found", 404
             finally:
                 cursor.close()
                 connection.close()
     
-    return redirect(url_for('index'))  # Ja nav pasniedzējs, sūta atpakaļ uz sākumlapu
+    return redirect(url_for('index'))  # Redirect to the login page if the user is not a teacher
 
 # @app.route('/student_page')
 # def student_page():
@@ -150,8 +158,8 @@ def student_page():
             try:
                 cursor.execute("""
                     SELECT VARDS, UZVARDS, LIETOTAJVARDS, EPASTS, PAROLE
-                    FROM STUDENTI WHERE STUDENT_ID = :1
-                """, (user_id,))
+                    FROM STUDENTI WHERE STUD_ID = :1
+                """, (int(user_id),))
                 user_data = cursor.fetchone()
                 
                 if user_data:
@@ -162,7 +170,7 @@ def student_page():
                         "email": user_data[3],
                         "password": user_data[4]
                     }
-                    return render_template('student_page.html', students=students)
+                    return render_template('Students_page.html', students=students)
             finally:
                 cursor.close()
                 connection.close()
