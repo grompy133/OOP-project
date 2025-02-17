@@ -4,218 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasniedzēja Skats</title>
-    <link rel="stylesheet">
-	<link rel="stylesheet" href="{{ url_for('static', filename='style_instructor_list.css') }}">
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <script>
-        function openTab(tabName) {
-            let tabs = document.getElementsByClassName("tab-content");
-            let tabButtons = document.getElementsByClassName("tab");
-
-            // Paslēpt visus tab-content elementus
-            for (let tab of tabs) {
-                tab.style.display = "none";
-            }
-
-            // Noņemt "active" klasi no visām cilnēm
-            for (let button of tabButtons) {
-                button.classList.remove("active");
-            }
-
-            // Parādīt izvēlēto cilni
-            document.getElementById(tabName).style.display = "block";
-
-            // Pievienot "active" klasi izvēlētajai cilnei
-            const activeButton = Array.from(tabButtons).find(button => button.innerText.toLowerCase() === tabName);
-            if (activeButton) {
-                activeButton.classList.add("active");
-            }
-        }
-
-        function addSeminar() {
-            // Parādīt popup logu ar semināra pievienošanas formu
-            document.getElementById("add-seminar-popup").style.display = "block";
-        }
-
-        function closeAddSeminarPopup() {
-            // Aizvērt popup logu
-            document.getElementById("add-seminar-popup").style.display = "none";
-        }
-
-        function addNewSeminar() {
-            let seminarName = document.getElementById("seminar-name").value;
-            if (seminarName.trim() !== "") {
-                let seminarList = document.getElementById("seminar-list");
-                let newSeminar = document.createElement("li");
-                let seminarNum = seminarList.children.length + 1;
-                newSeminar.innerHTML = `<a href='#' onclick='openSeminarPopup(${seminarNum}, "${seminarName}")'>${seminarName}</a>`;
-                seminarList.appendChild(newSeminar);
-            }
-            closeAddSeminarPopup(); // Aizvērt popup pēc semināra pievienošanas
-        }
-
-        function openSeminarPopup(seminarNum, seminarName) {
-            // Iestata semināra nosaukumu
-            document.getElementById("seminar-popup-title").innerText = seminarName;
-
-            // Parāda papildlogu ar pogām un tabulu
-            document.getElementById("seminar-popup").style.display = "block";
-        }
-
-        function closeSeminarPopup() {
-            document.getElementById("seminar-popup").style.display = "none";
-        }
-
-        function toggleCheckbox(event) {
-            console.log('Checkbox clicked');
-            let checkbox = event.target;
-            
-            if (checkbox.type === "checkbox") {
-                console.log('Checkbox status changing');
-                checkbox.checked = !checkbox.checked;
-            }
-        }    
-        
-        // Pievieno klikšķa notikumu katram checkboxam, lai pārslēgtu stāvokli, kad tiek klikšķināts uz tabulas rindas
-        window.onload = function() {
-            // Pievieno klikšķa notikumu katram checkbox šūnai
-            document.querySelectorAll('.checkbox-cell').forEach(cell => {
-                cell.addEventListener('click', (e) => {
-                    // Meklē checkbox elementu šūnā
-                    let checkbox = e.target.querySelector('input[type="checkbox"]');
-                    if (checkbox) {
-                        // Pārslēdz checkbox statusu
-                        checkbox.checked = !checkbox.checked;
-                    }
-                });
-            });
-        };
-    </script>
-
-	<script>
-        function showTab(tabName) {
-            document.getElementById("students").style.display = "none";
-            document.getElementById("profile").style.display = "none";
-            document.getElementById("students-tab").classList.remove("active");
-            document.getElementById("profile-tab").classList.remove("active");
-
-            document.getElementById(tabName).style.display = "block";
-            document.getElementById(tabName + "-tab").classList.add("active");
-        }
-
-        function toggleAddStudent() {
-            let modal = document.getElementById("add-student-modal");
-            modal.style.display = modal.style.display === "none" ? "block" : "none";
-        }
-
-        function closeModal() {
-            document.getElementById("add-student-modal").style.display = "none";
-        }
-
-        function addStudent() {
-            let name = document.getElementById("new-name").value;
-            let surname = document.getElementById("new-surname").value;
-            let email = document.getElementById("new-email").value;
-            let sendEmail = document.getElementById("send-email").checked;
-
-            if (!name || !surname || !email) {
-                alert("Please fill in all fields!");
-                return;
-            }
-
-            fetch('/admin/add_student', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, surname, email })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    let tableBody = document.getElementById("student-table-body");
-                    let newRow = tableBody.insertRow();
-                    newRow.innerHTML = `
-                        <td>
-                            <button class="action-btn envelope-btn" onclick="sendEmail('${email}')"><i class="fas fa-envelope"></i></button>
-                            <button class="action-btn edit-btn" onclick="editStudent(this)"><i class="fas fa-edit"></i></button>
-                            <button class="action-btn delete-btn" onclick="confirmDelete(this)"><i class="fas fa-times-circle"></i></button>
-                        </td>
-                        <td>${surname}</td>
-                        <td>${name}</td>
-                        <td>${email}</td>
-                    `;
-
-                    document.getElementById("new-name").value = '';
-                    document.getElementById("new-surname").value = '';
-                    document.getElementById("new-email").value = '';
-                    closeModal();
-
-                    if (sendEmail) {
-                        let mailString = `Hello! You have been added as a new student. Welcome, ${name} ${surname}!`;
-                        window.location.href = `mailto:${email}?subject=New Student&body=${mailString}`;
-                    }
-                } else {
-                    alert("Error adding student: " + data.error);
-                }
-            })
-            .catch(error => console.error("Error:", error));
-        }
-
-        function confirmDelete(button) {
-            window.rowToDelete = button.closest('tr');
-            document.getElementById("confirmation-dialog").style.display = "flex";
-        }
-
-        function deleteStudent() {
-            window.rowToDelete.remove();
-            document.getElementById("confirmation-dialog").style.display = "none";
-        }
-
-        function cancelDelete() {
-            document.getElementById("confirmation-dialog").style.display = "none";
-        }
-
-        function sendEmail(email) {
-            window.location.href = `mailto:${email}`;
-        }
-
-        function editStudent(button) {
-            let row = button.closest('tr');
-            let cells = row.cells;
-
-            cells[1].innerHTML = `<input type="text" value="${cells[1].innerText}">`;
-            cells[2].innerHTML = `<input type="text" value="${cells[2].innerText}">`;
-            cells[3].innerHTML = `<input type="email" value="${cells[3].innerText}">`;
-
-            button.innerHTML = "Save";
-            button.onclick = function() { saveStudent(this); };
-        }
-
-        function saveStudent(button) {
-            let row = button.closest('tr');
-            let cells = row.cells;
-
-            let surname = cells[1].querySelector('input').value;
-            let name = cells[2].querySelector('input').value;
-            let email = cells[3].querySelector('input').value;
-
-            if (!name || !surname || !email) {
-                alert("All fields are required!");
-                return;
-            }
-
-            cells[1].innerText = surname;
-            cells[2].innerText = name;
-            cells[3].innerText = email;
-
-            button.innerHTML = '<i class="fas fa-edit"></i>';
-            button.onclick = function() { editStudent(this); };
-        }
-
-        showTab('students');
-    </script>
-
     <style>
+        /* Add any additional inline styles here if needed */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -269,7 +61,7 @@
         }
 
         .add-button {
-            background-color:rgb(175, 76, 162);
+            background-color: rgb(175, 76, 162);
             color: white;
             border: none;
             padding: 10px 15px;
@@ -379,8 +171,7 @@
         }
     </style>
 </head>
-
-<body onload="openTab('seminars')">
+<body onload="openTab('profile')">
     <div class="navbar">
         <button class="tab" onclick="openTab('papers')">Papers</button>
         <button class="tab" onclick="openTab('students')">Students</button>
@@ -389,45 +180,31 @@
     </div>
     
     <div class="container">
+        <!-- Papers Tab -->
         <div id="papers" class="tab-content">
             <h2>Rakstu sadaļa</h2>
             <div id="vards"> </div>
             <div id="uzvards"> </div>
             <div id="lietotajvards"> </div>
         </div>
+
+        <!-- Students Tab -->
         <div id="students" class="tab-content">
             <h2>Studentu sadaļa</h2>
-            <!-- STUDENTS Tab Content -->
-            <div id="students" class="sheet-content">
-                <button class="add-btn" onclick="toggleAddStudents()">+ Add Students</button>
-                <div id="add-students-modal" class="modal" style="display:none;">
-                    <div class="modal-content">
-                        <span class="close-btn" onclick="closeModal()">&times;</span>
-                        <h3>Add Students</h3>
-                        <input type="text" id="new-name" placeholder="Name">
-                        <input type="text" id="new-surname" placeholder="Surname">
-                        <input type="email" id="new-email" placeholder="Email">
-                        <input type="text" id="new-student-id" placeholder="Student ID">
-                        <label>
-                            <input type="checkbox" id="send-email"> Send email 
-                        </label>
-                        <button onclick="addStudent()" class="register-btn">Register</button>
-                    </div>
+            <button class="add-btn" onclick="toggleAddStudents()">+ Add Students</button>
+            <div id="add-students-modal" class="modal" style="display:none;">
+                <div class="modal-content">
+                    <span class="close-btn" onclick="closeModal()">&times;</span>
+                    <h3>Add Students</h3>
+                    <input type="text" id="new-name" placeholder="Name">
+                    <input type="text" id="new-surname" placeholder="Surname">
+                    <input type="email" id="new-email" placeholder="Email">
+                    <label>
+                        <input type="checkbox" id="send-email"> Send email 
+                    </label>
+                    <button onclick="addStudent()" class="register-btn">Register</button>
                 </div>
-        </div>        
-        <div id="seminars" class="tab-content">
-            <button class="add-button" onclick="addSeminar()">+</button>
-            <h2>Semināri</h2>
-            <ul id="seminar-list">
-                <li><a href="#" onclick="openSeminarPopup(1, 'Seminārs 1')">Seminars #1</a></li>
-                <li><a href="#" onclick="openSeminarPopup(2, 'Seminārs 2')">Seminars #2</a></li>
-                <li><a href="#" onclick="openSeminarPopup(3, 'Seminārs 3')">Seminars #3</a></li>
-                <li><a href="#" onclick="openSeminarPopup(4, 'Seminārs 4')">Seminars #4</a></li>
-            </ul>
-        </div>
-
-
-
+            </div>
             <div class="table-container">
                 <table id="student-table">
                     <thead>
@@ -445,7 +222,19 @@
             </div>
         </div>
 
+        <!-- Seminars Tab -->
+        <div id="seminars" class="tab-content">
+            <button class="add-button" onclick="addSeminar()">+</button>
+            <h2>Semināri</h2>
+            <ul id="seminar-list">
+                <li><a href="#" onclick="openSeminarPopup(1, 'Seminārs 1')">Seminars #1</a></li>
+                <li><a href="#" onclick="openSeminarPopup(2, 'Seminārs 2')">Seminars #2</a></li>
+                <li><a href="#" onclick="openSeminarPopup(3, 'Seminārs 3')">Seminars #3</a></li>
+                <li><a href="#" onclick="openSeminarPopup(4, 'Seminārs 4')">Seminars #4</a></li>
+            </ul>
+        </div>
 
+        <!-- Profile Tab -->
         <div id="profile" class="tab-content">
             <h2>Profils</h2>
             <table>
@@ -510,77 +299,161 @@
     </div>
 
     <script>
-        // Toggle the Add Students modal
-function toggleAddStudents() {
-    let modal = document.getElementById("add-students-modal");
-    modal.style.display = modal.style.display === "none" ? "block" : "none";
-}
+        // Function to open a specific tab
+        function openTab(tabName) {
+            console.log(`Opening tab: ${tabName}`);  // Debugging
+            let tabs = document.getElementsByClassName("tab-content");
+            let tabButtons = document.getElementsByClassName("tab");
 
-// Add Student
-function addStudent() {
-    let name = document.getElementById("new-student-name").value;
-    let surname = document.getElementById("new-student-surname").value;
-    let email = document.getElementById("new-student-email").value;
-    let studentID = document.getElementById("new-student-id").value;
-    let sendEmail = document.getElementById("send-email-student").checked;
-
-    // Validation
-    if (!name || !surname || !email || !studentID) {
-        alert("Please fill in all fields!");
-        return;
-    }
-
-    // Send data to the backend to add the student
-    fetch('/admin/add_student', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name, surname, email, studentID })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Add new student to the table dynamically
-            let tableBody = document.getElementById("student-table-body");
-            let newRow = tableBody.insertRow();
-            newRow.setAttribute("data-id", data.id); // Set the data-id attribute with the student ID
-            newRow.innerHTML = `
-                <td>
-                    <button class="action-btn envelope-btn" onclick="sendEmail('${email}')"><i class="fas fa-envelope"></i></button>
-                    <button class="action-btn edit-btn" onclick="editStudent(this)"><i class="fas fa-edit"></i></button>
-                    <button class="action-btn delete-btn" onclick="confirmDeleteStudent(this)"><i class="fas fa-times-circle"></i></button>
-                </td>
-                <td>${surname}</td>
-                <td>${name}</td>
-                <td>${email}</td>
-                <td>${studentID}</td>
-            `;
-
-            // Clear form fields and close modal
-            document.getElementById("new-student-name").value = '';
-            document.getElementById("new-student-surname").value = '';
-            document.getElementById("new-student-email").value = '';
-            document.getElementById("new-student-id").value = '';
-            closeModal();
-
-            // Send email if checkbox is checked
-            if (sendEmail) {
-                let mailString = `Hello! You have been added as a new student. Welcome, ${name} ${surname}!`;
-                window.location.href = `mailto:${email}?subject=New Student&body=${mailString}`;
+            // Hide all tab-content elements
+            for (let tab of tabs) {
+                tab.style.display = "none";
             }
-        } else {
-            alert("Error adding student: " + data.error);
-        }
-    })
-    .catch(error => {
-        console.error("Error adding student:", error);
-        alert("An error occurred while adding the student.");
-    });
-}
 
+            // Remove "active" class from all tabs
+            for (let button of tabButtons) {
+                button.classList.remove("active");
+            }
+
+            // Show the selected tab
+            document.getElementById(tabName).style.display = "block";
+
+            // Add "active" class to the selected tab
+            const activeButton = Array.from(tabButtons).find(button => button.innerText.toLowerCase() === tabName);
+            if (activeButton) {
+                activeButton.classList.add("active");
+            }
+        }
+
+        // Open the profile tab by default
+        document.addEventListener('DOMContentLoaded', () => {
+            openTab('profile');  // Ensure the profile tab is opened by default
+        });
+
+        // Toggle the Add Students modal
+        function toggleAddStudents() {
+            let modal = document.getElementById("add-students-modal");
+            modal.style.display = modal.style.display === "none" ? "block" : "none";
+        }
+
+        // Add Student
+        function addStudent() {
+            let name = document.getElementById("new-name").value;
+            let surname = document.getElementById("new-surname").value;
+            let email = document.getElementById("new-email").value;
+            let sendEmail = document.getElementById("send-email").checked;
+
+            // Validation
+            if (!name || !surname || !email) {
+                alert("Please fill in all fields!");
+                return;
+            }
+
+            // Send data to the backend to add the student
+            fetch('/pasniedzejs/add_student', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, surname, email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Add new student to the table dynamically
+                    let tableBody = document.getElementById("student-table-body");
+                    let newRow = tableBody.insertRow();
+                    newRow.setAttribute("data-id", data.id); // Set the data-id attribute with the student ID
+                    newRow.innerHTML = 
+                        `<td>
+                            <button class="action-btn envelope-btn" onclick="sendEmail('${email}')"><i class="fas fa-envelope"></i></button>
+                            <button class="action-btn edit-btn" onclick="editStudent(this)"><i class="fas fa-edit"></i></button>
+                            <button class="action-btn delete-btn" onclick="confirmDeleteStudent(this)"><i class="fas fa-times-circle"></i></button>
+                        </td>
+                        <td>${surname}</td>
+                        <td>${name}</td>
+                        <td>${email}</td>
+                    `;
+
+                    // Clear form fields and close modal
+                    document.getElementById("new-name").value = '';
+                    document.getElementById("new-surname").value = '';
+                    document.getElementById("new-email").value = '';
+                    closeModal();
+
+                    // Send email if checkbox is checked
+                    if (sendEmail) {
+                        let mailString = `Hello! You have been added as a new student. Welcome, ${name} ${surname}!`;
+                        window.location.href = `mailto:${email}?subject=New Student&body=${mailString}`;
+                    }
+                } else {
+                    alert("Error adding student: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error adding student:", error);
+                alert("An error occurred while adding the student.");
+            });
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById("add-students-modal").style.display = "none";
+        }
+
+        // Send email
+        function sendEmail(email) {
+            window.location.href = `mailto:${email}`;
+        }
+
+        // Edit student
+        function editStudent(button) {
+            let row = button.closest('tr');
+            let id = row.getAttribute('data-id');
+            let surname = row.cells[1].innerText;
+            let name = row.cells[2].innerText;
+            let email = row.cells[3].innerText;
+
+            // Fill the modal with the current student data
+            document.getElementById("new-name").value = name;
+            document.getElementById("new-surname").value = surname;
+            document.getElementById("new-email").value = email;
+
+            // Show the modal
+            toggleAddStudents();
+        }
+
+        // Confirm delete student
+        function confirmDeleteStudent(button) {
+            if (confirm("Are you sure you want to delete this student?")) {
+                let row = button.closest('tr');
+                let id = row.getAttribute('data-id');
+
+                // Send delete request to the backend
+                fetch(`/delete_student/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        row.remove();
+                    } else {
+                        alert("Error deleting student: " + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error deleting student:", error);
+                    alert("An error occurred while deleting the student.");
+                });
+            }
+        }
+
+         // Initialize the page with the Students tab open
+         openTab('students');
+
+// Fetch students when the page loads
 function fetchStudents() {
-    fetch('/admin/get_students')
+    fetch('/pasniedzejs/get_students')
         .then(response => response.json())
         .then(data => {
             let tableBody = document.getElementById("student-table-body");
@@ -593,12 +466,11 @@ function fetchStudents() {
                     <td>
                         <button class="action-btn envelope-btn" onclick="sendEmail('${student.email}')"><i class="fas fa-envelope"></i></button>
                         <button class="action-btn edit-btn" onclick="editStudent(this)"><i class="fas fa-edit"></i></button>
-                        <button class="action-btn delete-btn" onclick="confirmDeleteStudent(this)"><i class="fas fa-times-circle"></i></button>
+                        <button class="action-btn delete-btn" onclick="confirmDelete(this)"><i class="fas fa-times-circle"></i></button>
                     </td>
                     <td>${student.surname}</td>
                     <td>${student.name}</td>
                     <td>${student.email}</td>
-                    <td>${student.studentID}</td>
                 `;
             });
         })
@@ -608,7 +480,6 @@ function fetchStudents() {
         });
 }
 
-// Call fetchStudents on page load
 fetchStudents();
     </script>
 </body>
