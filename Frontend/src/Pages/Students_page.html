@@ -22,13 +22,14 @@
         <!-- PAPERS Tab Content -->
         <div id="papers" class="sheet-content">
             <h2>List of Papers</h2>
+            <input type="text" id="filter-input" placeholder="Filter by title..." oninput="filterPapers()">
             <div class="table-container">
                 <table id="papers-table">
                     <thead>
                         <tr>
-                            <th>Title</th>
-                            <th>Author</th>
-                            <th>Published Date</th>
+                            <th>Nr.</th>
+                            <th>Actions</th>
+                            <th>Title of the papers</th>
                         </tr>
                     </thead>
                     <tbody id="papers-table-body">
@@ -61,8 +62,63 @@
             document.getElementById(tabName).style.display = "block";
             document.getElementById(tabName + "-tab").classList.add("active");
         }
-        
-        showTab('papers');
+
+        function filterPapers() {
+            const filter = document.getElementById('filter-input').value.toUpperCase();
+            const rows = document.querySelectorAll("#papers-table-body tr");
+            rows.forEach(row => {
+                const title = row.querySelector("td:nth-child(3)").textContent.toUpperCase();
+                row.style.display = title.includes(filter) ? "" : "none";
+            });
+        }
+
+        function fetchPapers() {
+    fetch('/students/get-papers')  // Use the correct URL with the Blueprint prefix
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Server responded with error");
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("Data received from API:", data);
+            if (data.papers) {
+                renderPapers(data.papers);
+            } else {
+                console.error("No papers found in response.");
+            }
+        })
+        .catch(error => {
+            console.error("Error fetching papers:", error);
+        });
+}
+
+        function renderPapers(papers) {
+            const tbody = document.getElementById("papers-table-body");
+            tbody.innerHTML = "";  // Clear the table before inserting new data
+            console.log("Data to be displayed in the table:", papers);  // Check if data is passed
+
+            papers.sort((a, b) => a.title.localeCompare(b.title)).forEach(paper => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${paper.id}</td>
+                    <td>
+                        <button class="action-btn" onclick="choosePaper(${paper.id})">Izvēlēties</button>
+                        <button class="action-btn" onclick="declinePaper(${paper.id})">Atteikties</button>
+                    </td>
+                    <td>${paper.title}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            console.log("Papers loaded into the table:", papers);  // Check if data is inserted into the table
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            console.log("Page loaded, starting data load...");  // Debugging message
+            fetchPapers();
+            showTab('papers');
+        });
     </script>
 </body>
 </html>
