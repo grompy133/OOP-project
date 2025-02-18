@@ -93,26 +93,27 @@
         });
 }
 
-        function renderPapers(papers) {
-            const tbody = document.getElementById("papers-table-body");
-            tbody.innerHTML = "";  // Clear the table before inserting new data
-            console.log("Data to be displayed in the table:", papers);  // Check if data is passed
+function renderPapers(papers) {
+    const tbody = document.getElementById("papers-table-body");
+    tbody.innerHTML = "";  // Clear the table before inserting new data
 
-            papers.sort((a, b) => a.title.localeCompare(b.title)).forEach(paper => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${paper.id}</td>
-                    <td>
-                        <button class="action-btn" onclick="choosePaper(${paper.id})">Izvēlēties</button>
-                        <button class="action-btn" onclick="declinePaper(${paper.id})">Atteikties</button>
-                    </td>
-                    <td>${paper.title}</td>
-                `;
-                tbody.appendChild(row);
-            });
+    papers.sort((a, b) => a.title.localeCompare(b.title)).forEach(paper => {
+        const isChosen = paper.student_id !== null;  // Pārbaudām, vai STUD_ID ir piešķirts
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${paper.id}</td>
+            <td>
+                <button class="action-btn" onclick="choosePaper(${paper.id})" ${isChosen ? "disabled" : ""}>
+                    Izvēlēties
+                </button>
+                <button class="action-btn" onclick="declinePaper(${paper.id})">Atteikties</button>
+            </td>
+            <td>${paper.title}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
 
-            console.log("Papers loaded into the table:", papers);  // Check if data is inserted into the table
-        }
 
         document.addEventListener("DOMContentLoaded", () => {
             console.log("Page loaded, starting data load...");  // Debugging message
