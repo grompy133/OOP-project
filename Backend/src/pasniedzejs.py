@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, jsonify, request
 import cx_Oracle
+import pandas as pd
+import io
 
 # Database connection details
 DB_USERNAME = 'C##sistema'
@@ -73,10 +75,12 @@ def add_student():
     finally:
         cursor.close()
         conn.close()
-
+        
 @pasn_bp.route('/delete_student', methods=['DELETE'])
-def delete_student():
+def delete_instructor():
+    """Delete an instructor from the database by name and surname."""
     data = request.json
+    print("Received data:", data)  # Add this line to check if data is coming through correctly
     name = data.get('name')
     surname = data.get('surname')
 
@@ -95,6 +99,7 @@ def delete_student():
         )
         conn.commit()
 
+        # Check if any row was deleted
         if cursor.rowcount == 0:
             return jsonify({"error": "Student not found"}), 404
 
@@ -106,15 +111,18 @@ def delete_student():
         cursor.close()
         conn.close()
 
+
 @pasn_bp.route('/edit_student', methods=['PUT'])
 def edit_student():
+    """Edit an existing instructor in the database."""
     data = request.json
     student_id = data.get('id')
     name = data.get('name', '').strip()
     surname = data.get('surname', '').strip()
     email = data.get('email', '').strip()
 
-    if not all([student_id, name, surname, email]):
+    # Check if any field is missing or empty
+    if not all([name, surname, email]):
         return jsonify({"error": "All fields are required!"}), 400
 
     conn = get_db_connection()
@@ -123,12 +131,14 @@ def edit_student():
 
     try:
         cursor = conn.cursor()
+        # Check if the instructor exists by ID
         cursor.execute("SELECT COUNT(*) FROM STUDENTI WHERE STUD_ID = :1", (student_id,))
         exists = cursor.fetchone()[0]
 
         if not exists:
             return jsonify({"error": "Student not found"}), 404
 
+        # Update the instructor based on ID
         cursor.execute(
             """
             UPDATE STUDENTI
@@ -146,3 +156,41 @@ def edit_student():
     finally:
         cursor.close()
         conn.close()
+
+@pasn_bp.route('/import_students', methods=['POST'])
+def import_students():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    if file and file.filename.endswith('.xlsx'):
+        conn = None
+        cursor = None
+        try:
+            df = pd.read_excel(file)
+            conn = get_db_connection()
+            if conn is None:
+                return jsonify({"error": "Cannot connect to the database"}), 500
+
+            cursor = conn.cursor()
+            for index, row in df.iterrows():
+                cursor.execute(
+                    "INSERT INTO STUDENTI (VARDS, UZVARDS, EPASTS) VALUES (:1, :2, :3)",
+                    (row['Vards'], row['Uzvards'], row['Epasts'])
+                )
+            conn.commit()
+            return jsonify({"success": True, "message": "Students imported successfully!"})
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            return jsonify({"error": str(e)}), 500
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+    else:
+        return jsonify({"error": "Invalid file format. Please upload an Excel file."}), 400
