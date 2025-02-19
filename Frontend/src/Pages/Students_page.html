@@ -28,7 +28,7 @@
                     <thead>
                         <tr>
                             <th>Nr.</th>
-                            <th>Actions</th>
+                            <th class="actions-column">Actions</th>
                             <th>Title of the papers</th>
                         </tr>
                     </thead>
@@ -103,10 +103,10 @@ function renderPapers(papers) {
         row.innerHTML = `
             <td>${paper.id}</td>
             <td>
-                <button class="action-btn" onclick="choosePaper(${paper.id})" ${isChosen ? "disabled" : ""}>
+                <button class="action-button" onclick="choosePaper(${paper.id})" ${isChosen ? "disabled" : ""}>
                     Izvēlēties
                 </button>
-                <button class="action-btn" onclick="declinePaper(${paper.id})">Atteikties</button>
+                <button class="action-button1" onclick="declinePaper(${paper.id})">Atteikties</button>
             </td>
             <td>${paper.title}</td>
         `;
