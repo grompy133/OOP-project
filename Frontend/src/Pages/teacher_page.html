@@ -210,6 +210,10 @@
         #confirmation-dialog button:hover {
             background-color: #e0852f;
         }
+        input {
+            font-size: 11pt;
+            display: block;
+        }
     </style>
 </head>
 <body onload="openTab('profile')">
@@ -220,13 +224,88 @@
         <button class="tab" onclick="openTab('profile')">Profile</button>
     </div>
     
-    <div class="container">
-        <!-- Papers Tab -->
+<!-- Papers Tab -->    
+<div class="container">
         <div id="papers" class="tab-content">
-            <h2>Rakstu sadaļa</h2>
-            <div id="vards"> </div>
-            <div id="uzvards"> </div>
-            <div id="lietotajvards"> </div>
+    <input type="text" id="info" placeholder="Information for students" style="width: 500px"><br>
+    <input type="text" id="filterInput" placeholder="Filter by title" onkeyup="filterTable()" style="width: 300px">
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Nr</th>
+                <th>Edit</th>
+                <th>Title of the papers</th>
+            </tr>
+        </thead>
+        <tbody id="papersTable">
+            <tr>
+                <td>1</td>
+                <td>✏️</td>
+                <td>A Collaborative Code Review Platform for GitHub</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>✏️</td>
+                <td>A comparative study of hybrid models of selective classification and dynamic selection of analogies for ...</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>✏️</td>
+                <td>A comparative Study of UML Tools</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>✏️</td>
+                <td>A Comparison of Metrics for UML Class Diagrams</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>✏️</td>
+                <td>A comparison of scrum and Kanban for identifying their selection factors</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>✏️</td>
+                <td>A Comparison of Security Assurance Support of Agile Software Development Methods</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>✏️</td>
+                <td>A Comparison of the Implementation Means for Development of Modelling Tools</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>✏️</td>
+                <td>A Conceptual Data Model and its Automatic Implementation for IoT-Based Business Intelligence</td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td>✏️</td>
+                <td>A framework to apply ISO-IEC29110 on SCRUM</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>✏️</td>
+                <td>A Framework to Formally Verify Conformance of a Software Process to a Software Method</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function filterTable() {
+            const filter = document.getElementById("filterInput").value.toLowerCase();
+            const rows = document.getElementById("papersTable").getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                let title = rows[i].getElementsByTagName("td")[2];
+                if (title) {
+                    let textValue = title.textContent || title.innerText;
+                    rows[i].style.display = textValue.toLowerCase().includes(filter) ? "" : "none";
+                }
+            }
+        }
+    </script>
         </div>
 
         <!-- Students Tab -->
