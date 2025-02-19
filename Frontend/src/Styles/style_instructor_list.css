@@ -266,3 +266,96 @@ button:hover {
     background-color: #0056b3; /* Darker blue for these buttons */
     color: white; /* Keep the text color white */
 }
+
+/* Pievienojiet šo jūsu CSS failā (style_instructor_list.css) */
+.sortable-header {
+    position: relative;
+    cursor: pointer;
+}
+
+.sortable-header::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid black; /* Default arrow pointing down */
+    opacity: 0.5;
+}
+
+.sortable-header.asc::after {
+    border-bottom: 5px solid black; /* Arrow pointing down */
+    border-top: none;
+}
+
+.sortable-header.desc::after {
+    border-top: 5px solid black; /* Arrow pointing up */
+    border-bottom: none;
+}
+
+/* Noņemam bultiņu no pirmās kolonnas (Actions) */
+th:first-child::after {
+    display: none !important; /* Pilnībā noņemam bultiņu */
+}
+
+#filter-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Students page */
+.action-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 6px;
+    margin-left: 6px;
+    border-radius: 3px;
+    font-size: 18px;
+}
+
+.action-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+.action-button1 {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 6px;
+    margin-left: 6px;
+    border-radius: 3px;
+    font-size: 18px;
+}
+
+.action-button1:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.actions-column {
+    width: 220px; /* Adjust the width as needed */
+}
+
+#filter-input {
+    width: 1200px; /* Adjust the width of the filter input */
+}
+
+
+
+
+
+
+
+
