@@ -194,3 +194,35 @@ def import_students():
                 conn.close()
     else:
         return jsonify({"error": "Invalid file format. Please upload an Excel file."}), 400
+    
+@pasn_bp.route('/get-papers', methods=['GET'])
+def get_papers():
+    conn = get_db_connection()
+    if conn is None:
+        print("ERROR: Database connection failed!")  # Debugging log
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        print("Executing query...")  # Debugging log
+        cursor.execute("SELECT RAKSTANR, NOSAUKUMS, STUDENTUGRUPA, STUD_ID FROM RAKSTI")
+
+        papers = []
+        for row in cursor:
+            papers.append({
+                "id": row[0],
+                "title": row[1],
+                "group": row[2],
+                "student_id": row[3]
+            })
+        
+        print("Data retrieved:", papers)  # Debugging log
+        return jsonify({"papers": papers})
+    
+    except cx_Oracle.DatabaseError as e:
+        print("Query error:", e)  # Debugging log
+        return jsonify({"error": "Database query failed"}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()
