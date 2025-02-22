@@ -3,59 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pasniedzēja Skats</title>
+    <title>Teachers Page</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+        }
+
+        .container {
+            width: 80%;
+            margin: auto;
         }
 
         .navbar {
             display: flex;
-            background-color: #007BFF;
-            padding: 10px;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
+            justify-content: flex-start; /* Aligns items to the start */
+            padding: 0; /* Ensures no extra padding */
+            margin-top: 20px; /* Removes any default margin */
+            margin-left: 10%;
         }
 
-        .navbar .tab {
-            background: none;
+        .tab {
+            background-color: #98a4b0;
             color: white;
-            border: none;
-            padding: 10px 20px;
+            padding: 15px;
             cursor: pointer;
-            font-size: 16px;
-        }
-
-        .navbar .tab:hover {
-            background-color: #0056b3;
-        }
-
-        .navbar .tab.active {
-            background-color: #0056b3;
-            border-radius: 5px;
-            font-weight: bold;
-        }
-
-        .container {
-            margin-top: 50px;
-            padding: 20px;
+            margin: 0; /* Removes gaps between tabs */
             text-align: center;
+            border-radius: 5px 5px 0 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border: none;
+            transition: background-color 0.3s ease;
+        }
+
+
+        .tab h3 {
+            margin: 0;
+        }
+
+        .tab:hover {
+            background-color: #05478d;
+        }
+
+        .tab.active {
+            background-color: #007bff; /* Brighter when active */
+        }
+
+        .tab.inactive {
+            background-color: #98a4b0; /* Darker when inactive (specifically for PROFILE) */
+            cursor: not-allowed; /* Make it look inactive by changing cursor */
         }
 
         .tab-content {
+            width: 100%;
             display: none;
-            background: white;
+            background-color: white;
             padding: 20px;
-            max-width: 1000px;
-            margin: 20px auto;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ddd;
+            margin-top: 0; /* Remove any space between tabs and content */
         }
 
         .add-button {
@@ -160,8 +170,13 @@
         }
 
         th, td {
+            border: 1px solid #ddd;
             padding: 10px;
-            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
         }
 
         .checkbox-cell {
@@ -259,9 +274,9 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            z-index: 1000;
         }
-
-        .register-btn {
+        register-btn {
             background-color: #007bff;
             color: white;
             padding: 10px;
@@ -307,12 +322,10 @@
             padding: 12px 20px; /* Increase padding for a better button size */
             font-size: 16px; /* Increase button font size */
         }
-
         /* General button hover effect */
         button:hover {
             background-color: #0056b3;
         }
-
         /* Specific hover effect for the Save, Add Instructor, and Register buttons */
         .add-btn:hover,
         .register:hover,
@@ -320,7 +333,6 @@
             background-color: #0056b3; /* Darker blue for these buttons */
             color: white; /* Keep the text color white */
         }
-        
 
         .sortable-header {
             position: relative;
@@ -357,19 +369,19 @@
         }
     </style>
 </head>
-<body onload="openTab('profile')">
+<body>  
     <div class="navbar">
-        <button class="tab" onclick="openTab('papers')">PAPERS</button>
-        <button class="tab" onclick="openTab('students')">STUDENTS</button>
-        <button class="tab" onclick="openTab('seminars')">SEMINARS</button>
-        <button class="tab" onclick="openTab('profile')">PROFILE</button>
+        <div class="tab" onclick="openTab('papers')"><h3>PAPERS</h3></div>
+        <div class="tab" onclick="openTab('students')"><h3>STUDENTS</h3></div>
+        <div class="tab" onclick="openTab('seminars')"><h3>SEMINARS</h3></div>
+        <div class="tab" onclick="openTab('profile')"><h3>PROFILE</h3></div>
     </div>
     
     <div class="container">
         <!-- Papers Tab -->
         <div id="papers" class="tab-content">
             <button class="add-button" onclick="document.getElementById('paper-file-input').click()">+</button>
-            <h2>Rakstu sadaļa</h2>
+            <h2>Papers</h2>
             <div class="table-container">
                 <table id="paper-table">
                     <thead>
@@ -391,7 +403,7 @@
 
         <!-- Students Tab -->
         <div id="students" class="tab-content">
-            <h2>Studentu sadaļa</h2>
+            <h2>Students</h2>
             <button class="add-btn" onclick="toggleAddStudents()">+ Add Students</button>
             <input type="file" id="file-input" accept=".xlsx" style="display:none;">
             <button class="add-btn" onclick="document.getElementById('file-input').click()">Import Students</button>
@@ -406,7 +418,7 @@
                     <label>
                         <input type="checkbox" id="send-email"> Send email 
                     </label>
-                    <button onclick="addStudent()" class="register-btn">Register</button>
+                    <button onclick="addStudent()" class="add-btn">Register</button>
                 </div>
             </div>
             <div class="table-container">
@@ -429,7 +441,7 @@
         <!-- Seminars Tab -->
         <div id="seminars" class="tab-content">
             <button class="add-button" onclick="addSeminar()">+</button>
-            <h2>Semināru sadaļa</h2>
+            <h2>Seminars</h2>
             <ul id="seminar-list">
                 <li><a href="#" onclick="openSeminarPopup(1, 'Seminārs 1')">Seminars #1</a></li>
                 <li><a href="#" onclick="openSeminarPopup(2, 'Seminārs 2')">Seminars #2</a></li>
@@ -438,13 +450,15 @@
 
         <!-- Profile Tab -->
         <div id="profile" class="tab-content">
-            <h2>Profils</h2>
+            <h2>Profile</h2>
+            <button onclick="editData(this)" class="add-btn">Edit data</button>
+            <button onclick="changePassword(this)" class="add-btn">Change password</button>
             <table>
-                <tr><td>Name:</td><td>{{ pasniedzejs.name }}</td></tr>
-                <tr><td>Surname:</td><td>{{ pasniedzejs.surname }}</td></tr>
-                <tr><td>User name:</td><td>{{ pasniedzejs.username }}</td></tr>
-                <tr><td>Email:</td><td>{{ pasniedzejs.email }}</td></tr>
-                <tr><td>Password:</td><td><input type="password" value="{{ pasniedzejs.password }}" readonly></td></tr>
+                <tr><td>Name:</td><td><input type="text" id="name" value="{{ pasniedzejs.name }}" readonly></td></tr>
+                <tr><td>Surname:</td><td><input type="text" id="surname" value="{{ pasniedzejs.surname }}" readonly></td></tr>
+                <tr><td>Username:</td><td><input type="text" id="username" value="{{ pasniedzejs.username }}" readonly></td></tr>
+                <tr><td>Email:</td><td><input type="email" id="email" value="{{ pasniedzejs.email }}" readonly></td></tr>
+                <tr><td>Password:</td><td><input type="password" id="password" value="{{ pasniedzejs.password }}" readonly></td></tr>
             </table>
         </div>
     </div>
@@ -955,6 +969,60 @@ function cancelDelete() {
                 headerCells[columnIndex].classList.add("desc");
             }
         }
+        // Edit Data
+        function editData(button) {
+    const inputs = document.querySelectorAll('#profile input');
+    let canEdit = false;
+    let updatedData = {};
+
+    inputs.forEach(input => {
+        if (input.id !== "password") {  // Skip password field (if needed)
+            if (input.readOnly) {
+                input.readOnly = false;  // Make the field editable
+                canEdit = true;  // Mark as editable
+            } else {
+                input.readOnly = true;  // Make the field readonly
+
+                // Collect the updated data (if it's not readonly)
+                updatedData[input.id] = input.value;
+            }
+        }
+    });
+
+    // Change the button text accordingly
+    if (canEdit) {
+        button.textContent = "Save data"; // If editable, prompt for saving
+    } else {
+        button.textContent = "Edit data"; // If all fields are readonly, prompt for editing
+
+        // Send updated data to the backend
+        sendUpdatedProfileData(updatedData);
+    }
+}
+
+// Function to send the updated profile data to the backend
+function sendUpdatedProfileData(data) {
+    fetch('/update-profile', {
+        method: 'POST',  // Assuming the backend uses POST to handle the update
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),  // Convert the data to JSON
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("Profile updated successfully!");
+            // Optionally, you can reload the data or refresh the page to show the updated data
+        } else {
+            alert("Failed to update profile. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error("Error updating profile:", error);
+        alert("An error occurred. Please try again.");
+    });
+}
+
     </script>
 </body>
 </html>
