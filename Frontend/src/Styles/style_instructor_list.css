@@ -15,7 +15,6 @@ body {
     display: flex;
     justify-content: flex-start; /* Align tabs horizontally */
     margin: 0; /* Remove any space between tabs and content */
-    border-bottom: 2px solid #ddd; /* Add a bottom border to make the tabs look like they are part of the content */
 }
 
 .tab {
@@ -74,6 +73,7 @@ body {
 
 table {
     width: 100%;
+    margin-top: 20px;
     border-collapse: collapse;
     background: white;
 }
@@ -206,12 +206,14 @@ th {
 }
 
 .register-btn {
-    background-color: #007bff;
+    background-color: #007BFF;
     color: white;
-    padding: 10px;
     border: none;
+    padding: 10px 15px;
     cursor: pointer;
-    margin-bottom: 10px;
+    font-size: 16px;
+    margin: 5px;
+    border-radius: 5px;
 }
 
 /* The Close Button */
@@ -267,7 +269,6 @@ button:hover {
     color: white; /* Keep the text color white */
 }
 
-/* Pievienojiet šo jūsu CSS failā (style_instructor_list.css) */
 .sortable-header {
     position: relative;
     cursor: pointer;
@@ -351,11 +352,3 @@ th:first-child::after {
 #filter-input {
     width: 1200px; /* Adjust the width of the filter input */
 }
-
-
-
-
-
-
-
-
