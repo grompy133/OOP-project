@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pasniedzēja Skats</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Add any additional inline styles here if needed */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -54,7 +52,7 @@
             display: none;
             background: white;
             padding: 20px;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 20px auto;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
@@ -182,6 +180,42 @@
             border-radius: 5px;
         }
 
+        .action-btn {
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 0 5px;
+            border-radius: 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .edit-btn {
+            background-color: #f0ad4e;
+            border: none;
+            cursor: pointer;
+        }
+
+        .delete-btn {
+            background-color: #d9534f;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* Specific styles for each button */
+        .envelope-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .invite-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
         /* Confirmation Dialog */
         #confirmation-dialog {
             position: fixed;
@@ -210,144 +244,88 @@
         #confirmation-dialog button:hover {
             background-color: #e0852f;
         }
-        input {
-            font-size: 11pt;
-            display: block;
+
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .modal-content input[type="text"],
+        .modal-content input[type="email"],
+        .modal-content label,
+        .modal-content button {
+            width: 100%;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .sortable-header {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .sortable-header::after {
+            content: '';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 5px solid black; /* Default arrow pointing down */
+            opacity: 0.5;
+        }
+
+        .sortable-header.asc::after {
+            border-bottom: 5px solid black; /* Arrow pointing down */
+            border-top: none;
+        }
+
+        .sortable-header.desc::after {
+            border-top: 5px solid black; /* Arrow pointing up */
+            border-bottom: none;
+        }
+
+        /* Noņemam bultiņu no pirmās kolonnas (Actions) */
+        th:first-child::after {
+            display: none !important; /* Pilnībā noņemam bultiņu */
         }
     </style>
 </head>
 <body onload="openTab('profile')">
     <div class="navbar">
-        <button class="tab" onclick="openTab('papers')">Papers</button>
-        <button class="tab" onclick="openTab('students')">Students</button>
-        <button class="tab" onclick="openTab('seminars')">Seminars</button>
-        <button class="tab" onclick="openTab('profile')">Profile</button>
+        <button class="tab" onclick="openTab('papers')">PAPERS</button>
+        <button class="tab" onclick="openTab('students')">STUDENTS</button>
+        <button class="tab" onclick="openTab('seminars')">SEMINARS</button>
+        <button class="tab" onclick="openTab('profile')">PROFILE</button>
     </div>
     
-<!-- Papers Tab -->    
-<div class="container">
+    <div class="container">
+        <!-- Papers Tab -->
         <div id="papers" class="tab-content">
-    <input type="text" id="info" placeholder="Information for students" style="width: 100%"><br>
-    <input type="text" id="filterInput" placeholder="Filter by title" onkeyup="filterTable()" style="width: 300px">
-    
-    <table>
-        <thead>
-            <tr>
-                <th>Nr</th>
-                <th style="width: 120px">Edit</th>
-                <th>Title of the papers</th>
-            </tr>
-        </thead>
-        <tbody id="papersTable">
-            <tr>
-                <td>1</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #1</td>
-            </tr>
-            <tr>
-                <td>2</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #2</td>
-            </tr>
-            <tr>
-                <td>3</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #3</td>
-            </tr>
-            <tr>
-                <td>4</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #4</td>
-            </tr>
-            <tr>
-                <td>5</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #5</td>
-            </tr>
-            <tr>
-                <td>6</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #6</td>
-            </tr>
-            <tr>
-                <td>7</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #7</td>
-            </tr>
-            <tr>
-                <td>8</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #8</td>
-            </tr>
-            <tr>
-                <td>9</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #9</td>
-            </tr>
-            <tr>
-                <td>10</td>
-                <td><button style="border: none; background: none; cursor: pointer">
-                    <img src="1188203-200.png" alt="Sign Icon" width="55">
-                    <img src="Refresh_icon.png" alt="Unsign Icon" width="45">
-                </button>
-                </td>
-                <td>Paper #10</td>
-            </tr>
-        </tbody>
-    </table>
-
-    <script>
-        function filterTable() {
-            const filter = document.getElementById("filterInput").value.toLowerCase();
-            const rows = document.getElementById("papersTable").getElementsByTagName("tr");
-
-            for (let i = 0; i < rows.length; i++) {
-                let title = rows[i].getElementsByTagName("td")[2];
-                if (title) {
-                    let textValue = title.textContent || title.innerText;
-                    rows[i].style.display = textValue.toLowerCase().includes(filter) ? "" : "none";
-                }
-            }
-        }
-        </script>
-    </div>
-</div>
+            <button class="add-button" onclick="document.getElementById('paper-file-input').click()">+</button>
+            <h2>Rakstu sadaļa</h2>
+            <div class="table-container">
+                <table id="paper-table">
+                    <thead>
+                        <tr>
+                            <th>Nr.</th>
+                            <th class="sortable-header" onclick="sortTable(1)">Paper Name</th>
+                            <th class="sortable-header" onclick="sortTable(2)">Student Name</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paper-table-body">
+                        <!-- Student rows will be inserted here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <input type="file" id="paper-file-input" accept=".pdf" multiple style="display:none;">
+            <input type="text" id="upload-student-id" placeholder="Student ID" style="display: none;">
+            <input type="text" id="upload-student-group" placeholder="Student Group" style="display: none;">
+        </div>
 
         <!-- Students Tab -->
         <div id="students" class="tab-content">
@@ -374,9 +352,9 @@
                     <thead>
                         <tr>
                             <th>Actions</th>
-                            <th onclick="sortTable(1)">Surname</th>
-                            <th onclick="sortTable(2)">Name</th>
-                            <th onclick="sortTable(3)">Email</th>
+                            <th class="sortable-header" onclick="sortTable(1)">Last Name</th>
+                            <th class="sortable-header" onclick="sortTable(2)">First Name</th>
+                            <th class="sortable-header" onclick="sortTable(3)">Email</th>
                         </tr>
                     </thead>
                     <tbody id="student-table-body">
@@ -389,12 +367,10 @@
         <!-- Seminars Tab -->
         <div id="seminars" class="tab-content">
             <button class="add-button" onclick="addSeminar()">+</button>
-            <h2>Semināri</h2>
+            <h2>Semināru sadaļa</h2>
             <ul id="seminar-list">
                 <li><a href="#" onclick="openSeminarPopup(1, 'Seminārs 1')">Seminars #1</a></li>
                 <li><a href="#" onclick="openSeminarPopup(2, 'Seminārs 2')">Seminars #2</a></li>
-                <li><a href="#" onclick="openSeminarPopup(3, 'Seminārs 3')">Seminars #3</a></li>
-                <li><a href="#" onclick="openSeminarPopup(4, 'Seminārs 4')">Seminars #4</a></li>
             </ul>
         </div>
 
@@ -459,7 +435,7 @@
             </tbody>
         </table>
 
-        <button onclick="closeSeminarPopup()">Aizvērt</button>
+        <button onclick="closeSeminarPopup()">Cancel</button>
     </div>
 
     <!-- Confirmation Dialog -->
@@ -470,6 +446,106 @@
     </div>
 
     <script>
+
+        document.getElementById('paper-file-input').addEventListener('change', handlePaperFileSelect, false);
+
+        function handlePaperFileSelect(event) {
+            const files = event.target.files;
+            if (files && files.length > 0) {
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.type === 'application/pdf') {
+                        const fileName = file.name;
+                        addPaperLinkToTable(fileName, file);
+                    } else {
+                        alert('Lūdzu, izvēlieties PDF failus.');
+                        // Šeit nav nepieciešams break, jo vēlamies pievienot arī citus pareizos failus
+                    }
+                }
+            } else {
+                alert('Lūdzu, izvēlieties PDF failus.');
+            }
+            document.getElementById('paper-file-input').value = ''; // Pārvietojam notīrīšanu ārpus cikla   
+        }
+
+        function uploadAndAddPaperLink(fileName, file) {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('student_id', document.getElementById('upload-student-id').value);
+        formData.append('student_group', document.getElementById('upload-student-group').value);
+
+        fetch('/upload_pdf', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                addPaperLinkToTable(fileName, file);
+            } else {
+                alert('Neizdevās augšupielādēt PDF: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Kļūda augšupielādējot PDF:', error);
+            alert('Kļūda augšupielādējot PDF.');
+        });
+    }
+
+
+        function addPaperLinkToTable(fileName, file) {
+            const tableBody = document.getElementById('paper-table-body');
+            const newRow = tableBody.insertRow();
+
+            const cell1 = newRow.insertCell(0);
+            const cell2 = newRow.insertCell(1);
+            const cell3 = newRow.insertCell(2);
+
+            cell1.textContent = tableBody.rows.length;
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(file);
+            link.textContent = fileName;
+            link.target = '_blank';
+            cell2.appendChild(link);
+
+            cell3.textContent = '';
+        }
+
+        function addSeminar() {
+            // Parādīt popup logu ar semināra pievienošanas formu
+            document.getElementById("add-seminar-popup").style.display = "block";
+        }
+
+        function closeAddSeminarPopup() {
+            // Aizvērt popup logu
+            document.getElementById("add-seminar-popup").style.display = "none";
+        }
+
+        function addNewSeminar() {
+            let seminarName = document.getElementById("seminar-name").value;
+            if (seminarName.trim() !== "") {
+                let seminarList = document.getElementById("seminar-list");
+                let newSeminar = document.createElement("li");
+                let seminarNum = seminarList.children.length + 1;
+                newSeminar.innerHTML = `<a href='#' onclick='openSeminarPopup(${seminarNum}, "${seminarName}")'>${seminarName}</a>`;
+                seminarList.appendChild(newSeminar);
+            }
+            closeAddSeminarPopup(); // Aizvērt popup pēc semināra pievienošanas
+        }
+
+        function openSeminarPopup(seminarNum, seminarName) {
+            // Iestata semināra nosaukumu
+            document.getElementById("seminar-popup-title").innerText = seminarName;
+
+            // Parāda papildlogu ar pogām un tabulu
+            document.getElementById("seminar-popup").style.display = "block";
+        }
+
+        function closeSeminarPopup() {
+            document.getElementById("seminar-popup").style.display = "none";
+        }
+
         // Function to open a specific tab
         function openTab(tabName) {
             console.log(`Opening tab: ${tabName}`);  // Debugging
@@ -540,7 +616,7 @@
                             <button class="action-btn envelope-btn" onclick="sendEmail('${email}')"><i class="fas fa-envelope"></i></button>
                             <button class="action-btn edit-btn" onclick="editStudent(this)"><i class="fas fa-edit"></i></button>
                             <button class="action-btn delete-btn" onclick="confirmDelete(this)"><i class="fas fa-times-circle"></i></button>
-                            <button class="action-btn invite-btn" onclick="sendInvitation('${student.email}')"><i class="fas fa-paper-plane"></i></button>
+                            <button class="action-btn invite-btn" onclick="sendInvitation('${email}')"><i class="fas fa-paper-plane"></i></button>
                         </td>
                         <td>${surname}</td>
                         <td>${name}</td>
@@ -770,6 +846,53 @@ function cancelDelete() {
                 alert("An error occurred while importing students.");
             });
         });
+        let currentSortColumn = null;
+        let isAscending = true;
+
+        function sortTable(columnIndex) {
+            // Ja kolonna ir "Actions" (pirmā kolonna), neko nedarām
+            if (columnIndex === 0) return;
+
+            const table = document.getElementById("student-table");
+            const rows = Array.from(table.rows).slice(1); // Izņemam header rindu
+            const headerCells = table.getElementsByTagName("th");
+
+            // Noņemam esošās bultiņas no citām kolonnām
+            for (let i = 0; i < headerCells.length; i++) {
+                if (i !== columnIndex) {
+                    headerCells[i].classList.remove("asc", "desc");
+                }
+            }
+
+            // Mainām kārtošanas secību, ja tiek noklikšķināts uz vienas un tās pašas kolonnas
+            if (currentSortColumn === columnIndex) {
+                isAscending = !isAscending;
+            } else {
+                isAscending = true;
+            }
+
+            // Saglabājam pašreizējo kolonnu
+            currentSortColumn = columnIndex;
+
+            // Kārtojam rindas
+            rows.sort((a, b) => {
+                const cellA = a.cells[columnIndex].innerText.trim();
+                const cellB = b.cells[columnIndex].innerText.trim();
+                return isAscending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+            });
+
+            // Pievienojam sakārtotās rindas atpakaļ tabulā
+            rows.forEach(row => table.tBodies[0].appendChild(row));
+
+            // Pievienojam bultiņu virzienu
+            if (isAscending) {
+                headerCells[columnIndex].classList.remove("desc");
+                headerCells[columnIndex].classList.add("asc");
+            } else {
+                headerCells[columnIndex].classList.remove("asc");
+                headerCells[columnIndex].classList.add("desc");
+            }
+        }
     </script>
 </body>
 </html>
