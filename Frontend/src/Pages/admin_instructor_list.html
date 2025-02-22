@@ -7,6 +7,416 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style_instructor_list.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    padding: 20px;
+}
+
+.tabs {
+    display: flex;
+    justify-content: flex-start; /* Align tabs horizontally */
+    margin: 0; /* Remove any space between tabs and content */
+}
+
+.tab {
+    background-color: #98a4b0;
+    color: white;
+    padding: 15px;
+    cursor: pointer;
+    margin-right: 0; /* Remove space between tabs */
+    text-align: center;
+    border-radius: 5px 5px 0 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: none; /* Remove any border */
+    transition: background-color 0.3s ease; /* Add smooth transition for color change */
+}
+
+.tab h3 {
+    margin: 0;
+}
+
+.tab:hover {
+    background-color: #05478d;
+}
+
+.tab.active {
+    background-color: #007bff; /* Brighter when active */
+}
+
+.tab.inactive {
+    background-color: #98a4b0; /* Darker when inactive (specifically for PROFILE) */
+    cursor: not-allowed; /* Make it look inactive by changing cursor */
+}
+
+.sheet-content {
+    width: 100%;
+    display: none;
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+    margin-top: 0; /* Remove any space between tabs and content */
+}
+
+#instructions {
+    display: block; /* Initially show instructions sheet */
+}
+
+.add-btn {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 5px;
+    border-radius: 5px;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    background: white;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+th {
+    background-color: #007bff;
+    color: white;
+}
+
+.edit-btn {
+    background-color: #f0ad4e;
+    border: none;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color: #d9534f;
+    border: none;
+    cursor: pointer;
+}
+
+#profile-details {
+    margin-top: 20px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.action-btn {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 18px;
+    margin: 0 5px;
+    border-radius: 5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Hover effect for buttons */
+.action-btn:hover {
+    background-color: #ddd;
+}
+
+/* Specific styles for each button */
+.edit-btn {
+    background-color: #f0ad4e;
+}
+
+.delete-btn {
+    background-color: #d9534f;
+}
+
+.envelope-btn {
+    background-color: #007bff;
+    color: white;
+}
+
+.invite-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+#confirmation-dialog {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 18px;
+}
+
+#confirmation-dialog button {
+    background-color: #f0ad4e;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#confirmation-dialog button:hover {
+    background-color: #e0852f;
+}
+
+/* Modal Styles */
+.modal {
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    display: none; /* Initially hidden */
+    position: fixed;
+    z-index: 1; /* Sit on top of everything */
+    left: 20%;
+    top: 0;
+    width: 30%; /* Full width */
+    height: 70%; /* Full height */
+    background-color: rgba(255, 255, 255, 0); /* Black background with transparency */
+    overflow: auto; /* Enable scroll if needed */
+    padding-top: 60px; /* Position the modal content */
+    display: flex; /* Use flexbox */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+/* Modal Content */
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column; /* Align items vertically */
+    align-items: center; /* Center items horizontally */
+    position: relative; /* Needed for positioning the close button */
+}
+
+.register-btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+/* The Close Button */
+.close-btn {
+    color: #007bff;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute; /* Position it at the top right */
+    top: 10px; /* Adjust the distance from the top */
+    right: 10px; /* Adjust the distance from the right */
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: rgb(0, 28, 139);
+    cursor: pointer;
+}
+
+/* Add space between input fields and button */
+.modal-content {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column; /* Align items vertically */
+            align-items: center; /* Center items horizontally */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+        }
+        register-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .close-btn {
+            color: #007bff;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: absolute; /* Position it at the top right */
+            top: 10px; /* Adjust the distance from the top */
+            right: 10px; /* Adjust the distance from the right */
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: rgb(0, 28, 139);
+            cursor: pointer;
+        }
+
+        /* Add space between input fields and button */
+        .modal-content input,
+        .modal-content label {
+            margin-bottom: 15px; /* Add space below inputs */
+            width: 100%; /* Ensure inputs and label take full width */
+            padding: 10px; /* Increase padding for better readability */
+            font-size: 16px; /* Increase font size */
+        }
+
+        .modal-content input[type="checkbox"] {
+            margin-right: 10px; /* Add some space between the checkbox and the text */
+            width: auto; /* Ensure the checkbox maintains its default size */
+            height: auto;       
+        }
+
+        /* Make button spacing more consistent */
+        .modal-content button {
+            margin-top: 10px; /* Add some space above the button */
+            padding: 12px 20px; /* Increase padding for a better button size */
+            font-size: 16px; /* Increase button font size */
+        }
+        /* General button hover effect */
+        button:hover {
+            background-color: #0056b3;
+        }
+        /* Specific hover effect for the Save, Add Instructor, and Register buttons */
+        .add-btn:hover,
+        .register:hover,
+        .save-btn:hover {
+            background-color: #0056b3; /* Darker blue for these buttons */
+            color: white; /* Keep the text color white */
+        }
+
+
+/* General button hover effect */
+button:hover {
+    background-color: #0056b3;
+}
+
+/* Specific hover effect for the Save, Add Instructor, and Register buttons */
+.add-btn:hover,
+.register:hover,
+.save-btn:hover {
+    background-color: #0056b3; /* Darker blue for these buttons */
+    color: white; /* Keep the text color white */
+}
+
+/* Pievienojiet šo jūsu CSS failā (style_instructor_list.css) */
+.sortable-header {
+    position: relative;
+    cursor: pointer;
+}
+
+.sortable-header::after {
+    content: '';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid black; /* Default arrow pointing down */
+    opacity: 0.5;
+}
+
+.sortable-header.asc::after {
+    border-bottom: 5px solid black; /* Arrow pointing down */
+    border-top: none;
+}
+
+.sortable-header.desc::after {
+    border-top: 5px solid black; /* Arrow pointing up */
+    border-bottom: none;
+}
+
+/* Noņemam bultiņu no pirmās kolonnas (Actions) */
+th:first-child::after {
+    display: none !important; /* Pilnībā noņemam bultiņu */
+}
+
+#filter-input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Students page */
+.action-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 6px;
+    margin-left: 6px;
+    border-radius: 3px;
+    font-size: 18px;
+}
+
+.action-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+.action-button1 {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 6px;
+    margin-left: 6px;
+    border-radius: 3px;
+    font-size: 18px;
+}
+
+.action-button1:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.actions-column {
+    width: 220px; /* Adjust the width as needed */
+}
+
+#filter-input {
+    width: 1200px; /* Adjust the width of the filter input */
+}
+</style>
 <body>
     <div class="container">
         <!-- Tabs for Instructions and Profile -->
@@ -32,7 +442,7 @@
                     <label>
                         <input type="checkbox" id="send-email"> Send email 
                     </label>
-                    <button onclick="addInstructor()" class="register-btn">Register</button>
+                    <button onclick="addInstructor()" class="add-btn">Register</button>
                 </div>
             </div>
             <div class="table-container">
@@ -54,13 +464,15 @@
 
         <!-- PROFILE Tab Content -->
         <div id="profile" class="sheet-content" style="display: none;">
-            <h2>Profils</h2>
+            <h2>Profile</h2>
+            <button onclick="editData(this)" class="add-btn">Edit data</button>
+            <button onclick="changePassword(this)" class="add-btn">Change password</button>
             <table>
-                <tr><td>Name:</td><td>{{ admin.name }}</td></tr>
-                <tr><td>Surname:</td><td>{{ admin.surname }}</td></tr>
-                <tr><td>User name:</td><td>{{ admin.username }}</td></tr>
-                <tr><td>Email:</td><td>{{ admin.email }}</td></tr>
-                <tr><td>Password:</td><td><input type="password" value="{{ admin.password }}" readonly></td></tr>
+                <tr><td>Name:</td><td><input type="text" id="name" value="{{ admin.name }}" readonly></td></tr>
+                <tr><td>Surname:</td><td><input type="text" id="surname" value="{{ admin.surname }}" readonly></td></tr>
+                <tr><td>Username:</td><td><input type="text" id="username" value="{{ admin.username }}" readonly></td></tr>
+                <tr><td>Email:</td><td><input type="email" id="email" value="{{ admin.email }}" readonly></td></tr>
+                <tr><td>Password:</td><td><input type="password" id="password" value="{{ admin.password }}" readonly></td></tr>
             </table>
         </div>
 
@@ -235,6 +647,59 @@ function editInstructor(button) {
 
         actionCell.appendChild(saveButton);
     }
+}
+// Edit Data
+function editData(button) {
+    const inputs = document.querySelectorAll('#profile input');
+    let canEdit = false;
+    let updatedData = {};
+
+    inputs.forEach(input => {
+        if (input.id !== "password") {  // Skip password field (if needed)
+            if (input.readOnly) {
+                input.readOnly = false;  // Make the field editable
+                canEdit = true;  // Mark as editable
+            } else {
+                input.readOnly = true;  // Make the field readonly
+
+                // Collect the updated data (if it's not readonly)
+                updatedData[input.id] = input.value;
+            }
+        }
+    });
+
+    // Change the button text accordingly
+    if (canEdit) {
+        button.textContent = "Save data"; // If editable, prompt for saving
+    } else {
+        button.textContent = "Edit data"; // If all fields are readonly, prompt for editing
+
+        // Send updated data to the backend
+        sendUpdatedProfileData(updatedData);
+    }
+}
+
+// Function to send the updated profile data to the backend
+function sendUpdatedProfileData(data) {
+    fetch('/update-profile', {
+        method: 'POST',  // Assuming the backend uses POST to handle the update
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),  // Convert the data to JSON
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("Profile updated successfully!");
+            // Optionally, you can reload the data or refresh the page to show the updated data
+        } else {
+            alert("Failed to update profile. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error("Error updating profile:", error);
+        alert("An error occurred. Please try again.");
+    });
 }
 
 function saveInstructor(button) {
