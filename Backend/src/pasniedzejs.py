@@ -54,7 +54,6 @@ def add_student():
     conn = get_db_connection()
     if conn is None:
         return jsonify({"error": "Cannot connect to the database"}), 500
-
     try:
         cursor = conn.cursor()
         student_id = cursor.var(cx_Oracle.NUMBER)
