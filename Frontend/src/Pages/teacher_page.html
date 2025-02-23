@@ -396,9 +396,8 @@
                     </tbody>
                 </table>
             </div>
-            <input type="file" id="paper-file-input" accept=".pdf" multiple style="display:none;">
-            <input type="text" id="upload-student-id" placeholder="Student ID" style="display: none;">
-            <input type="text" id="upload-student-group" placeholder="Student Group" style="display: none;">
+            <input type="file" id="paper-file-input" accept=".pdf" style="display:none;">
+            <div id="message"></div>
         </div>
 
         <!-- Students Tab -->
@@ -523,52 +522,48 @@
 
     <script>
 
-        document.getElementById('paper-file-input').addEventListener('change', handlePaperFileSelect, false);
+    // Add event listener to the file input
+    document.getElementById('paper-file-input').addEventListener('change', function(event) {
+    const files = event.target.files;
 
-        function handlePaperFileSelect(event) {
-            const files = event.target.files;
-            if (files && files.length > 0) {
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    if (file.type === 'application/pdf') {
-                        const fileName = file.name;
-                        addPaperLinkToTable(fileName, file);
-                    } else {
-                        alert('Lūdzu, izvēlieties PDF failus.');
-                        // Šeit nav nepieciešams break, jo vēlamies pievienot arī citus pareizos failus
-                    }
-                }
-            } else {
-                alert('Lūdzu, izvēlieties PDF failus.');
-            }
-            document.getElementById('paper-file-input').value = ''; // Pārvietojam notīrīšanu ārpus cikla   
-        }
-
-        function uploadAndAddPaperLink(fileName, file) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('student_id', document.getElementById('upload-student-id').value);
-        formData.append('student_group', document.getElementById('upload-student-group').value);
-
-        fetch('/upload_pdf', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                addPaperLinkToTable(fileName, file);
-            } else {
-                alert('Neizdevās augšupielādēt PDF: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Kļūda augšupielādējot PDF:', error);
-            alert('Kļūda augšupielādējot PDF.');
-        });
+    // Pārbauda, vai fails ir izvēlēts
+    if (files.length === 0) {
+        alert('Lūdzu, izvēlieties PDF failu!'); // Izmantojam alert()
+        return;
     }
 
+    // Pārbauda, vai fails ir PDF formātā
+    if (files[0].type !== 'application/pdf') {
+        alert('Lūdzu, izvēlieties tikai PDF failu!'); // Izmantojam alert()
+        return;
+    }
 
+    // Augšupielādē failu
+    uploadFile(files[0]);
+});
+
+function uploadFile(file) {
+    const formData = new FormData();
+    formData.append('file', file); // Pievieno failu FormData objektam
+
+    // Nosūta failu uz serveri
+    fetch('/pasniedzejs/upload_pdf', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('PDF fails veiksmīgi augšupielādēts!'); // Veiksmīga augšupielāde
+        } else {
+            alert('Kļūda: ' + data.error); // Kļūdas ziņojums
+        }
+    })
+    .catch(error => {
+        console.error('Kļūda:', error);
+        alert('Kļūda augšupielādējot PDF failu.'); // Tīkla vai servera kļūda
+    });
+}
         function addPaperLinkToTable(fileName, file) {
             const tableBody = document.getElementById('paper-table-body');
             const newRow = tableBody.insertRow();
@@ -1022,6 +1017,38 @@ function sendUpdatedProfileData(data) {
         alert("An error occurred. Please try again.");
     });
 }
+
+function fetchPapers() {
+    fetch('/pasniedzejs/get-papers')
+        .then(response => response.json())
+        .then(data => {
+            if (data.papers) {
+                renderPapers(data.papers);
+            }
+        })
+        .catch(error => console.error("Error fetching papers:", error));
+}
+
+function renderPapers(papers) {
+    const tbody = document.getElementById("paper-table-body");
+    tbody.innerHTML = "";  // Clear the table before inserting new data
+
+    papers.forEach((paper, index) => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${paper.title}</td>
+            <td>${paper.student_name}</td>
+        `;
+
+        tbody.appendChild(row);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    fetchPapers();
+});
 
     </script>
 </body>
