@@ -29,36 +29,50 @@ def index():
 def get_papers():
     conn = get_db_connection()
     if conn is None:
-        print("ERROR: Database connection failed!")  # Debugging log
         return jsonify({"error": "Database connection failed"}), 500
 
     try:
         cursor = conn.cursor()
-        print("Executing query...")  # Debugging log
-        cursor.execute("SELECT RAKSTANR, NOSAUKUMS, STUDENTUGRUPA, STUD_ID FROM RAKSTI")
+        cursor.execute("SELECT RAKSTANR, FILE_NAME, STUD_ID FROM RAKSTI")
 
         papers = []
         for row in cursor:
             papers.append({
-                "id": row[0],
-                "title": row[1],
-                "group": row[2],
-                "student_id": row[3]
+                "id": row[0],  # RAKSTANR
+                "title": row[1],  # FILE_NAME
+                "student_id": row[2]  # STUD_ID
             })
-        
-        print("Data retrieved:", papers)  # Debugging log
+
         return jsonify({"papers": papers})
     
     except cx_Oracle.DatabaseError as e:
-        print("Query error:", e)  # Debugging log
         return jsonify({"error": "Database query failed"}), 500
     
     finally:
         cursor.close()
         conn.close()
 
-# Flask app initialization
-app = Flask(__name__)
+# Maršruts, lai atsauktu rakstu
+@stud_bp.route('/decline-paper/<int:paper_id>', methods=['POST'])
+def decline_paper(paper_id):
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("UPDATE RAKSTI SET STUD_ID = NULL WHERE RAKSTANR = :paper_id", {"paper_id": paper_id})
+        conn.commit()
+        return jsonify({"success": True})
+    
+    except cx_Oracle.DatabaseError as e:
+        return jsonify({"error": "Database query failed"}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    stud_bp.run(debug=True)
