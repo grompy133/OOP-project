@@ -487,25 +487,39 @@ function sendUpdatedProfileData(data) {
         }
 
         function fetchPapers() {
-    fetch('/students/get-papers')  // Use the correct URL with the Blueprint prefix
-        .then(response => {
-            if (!response.ok) {
-                throw new Error("Server responded with error");
-            }
-            return response.json();
-        })
+    fetch('/students/get-papers')
+        .then(response => response.json())
         .then(data => {
-            console.log("Data received from API:", data);
             if (data.papers) {
                 renderPapers(data.papers);
-            } else {
-                console.error("No papers found in response.");
             }
         })
-        .catch(error => {
-            console.error("Error fetching papers:", error);
-        });
+        .catch(error => console.error("Error fetching papers:", error));
 }
+
+function renderPapers(papers) {
+    const tbody = document.getElementById("papers-table-body");
+    tbody.innerHTML = "";  // Notīra tabulu pirms jaunu datu pievienošanas
+
+    papers.forEach((paper, index) => {
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>
+                <button class="action-button" onclick="viewPaper(${paper.id})">View</button>
+            </td>
+            <td>${paper.title}</td>
+        `;
+
+        tbody.appendChild(row);
+    });
+}
+
+function viewPaper(id) {
+    alert("Viewing paper ID: " + id);
+}
+
 
 function renderPapers(papers) {
     const tbody = document.getElementById("papers-table-body");
@@ -520,11 +534,34 @@ function renderPapers(papers) {
                 <button class="action-button" onclick="choosePaper(${paper.id})" ${isChosen ? "disabled" : ""}>
                     Izvēlēties
                 </button>
-                <button class="action-button1" onclick="declinePaper(${paper.id})">Atteikties</button>
+                <button class="action-button1" onclick="declinePaper(${paper.id})" ${!isChosen ? "disabled" : ""}>
+                    Atteikties
+                </button>
             </td>
             <td>${paper.title}</td>
         `;
         tbody.appendChild(row);
+    });
+}
+
+function declinePaper(paperId) {
+    fetch(`/students/decline-paper/${paperId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("Paper declined successfully!");
+            fetchPapers();  // Refresh the list of papers
+        } else {
+            alert("Failed to decline paper. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error("Error declining paper:", error);
+        alert("An error occurred. Please try again.");
     });
 }
 
