@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, jsonify, request
+from flask import Blueprint, render_template, jsonify, request, send_file
 import cx_Oracle
 import pandas as pd
 import io
@@ -198,30 +198,115 @@ def import_students():
 def get_papers():
     conn = get_db_connection()
     if conn is None:
-        print("ERROR: Database connection failed!")  # Debugging log
         return jsonify({"error": "Database connection failed"}), 500
 
     try:
         cursor = conn.cursor()
-        print("Executing query...")  # Debugging log
-        cursor.execute("SELECT RAKSTANR, NOSAUKUMS, STUDENTUGRUPA, STUD_ID FROM RAKSTI")
-
+        cursor.execute("""
+            SELECT R.RAKSTANR, R.FILE_NAME, R.STUDENTUGRUPA, S.VARDS, S.UZVARDS
+            FROM RAKSTI R
+            LEFT JOIN STUDENTI S ON R.STUD_ID = S.STUD_ID
+        """)
+        
         papers = []
         for row in cursor:
+            student_name = f"{row[3]} {row[4]}" if row[3] else "No student assigned"
             papers.append({
                 "id": row[0],
                 "title": row[1],
                 "group": row[2],
-                "student_id": row[3]
+                "student_name": student_name
             })
         
-        print("Data retrieved:", papers)  # Debugging log
         return jsonify({"papers": papers})
     
     except cx_Oracle.DatabaseError as e:
-        print("Query error:", e)  # Debugging log
         return jsonify({"error": "Database query failed"}), 500
     
     finally:
         cursor.close()
         conn.close()
+
+
+@pasn_bp.route('/upload_pdf', methods=['POST'])
+def upload_pdf():
+    if 'file' not in request.files:
+        print("No file part in request")  # Debug log
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files['file']
+    if not file or file.filename == '':
+        print("No file selected")  # Debug log
+        return jsonify({"error": "No selected file"}), 400
+
+    print("Received file:", file.filename, file.content_type, file.content_length)  # Debug log
+
+    if file and file.filename.endswith('.pdf'):
+        conn = None
+        cursor = None
+        try:
+            conn = get_db_connection()
+            if conn is None:
+                print("Failed to connect to the database")  # Debug log
+                return jsonify({"error": "Cannot connect to the database"}), 500
+
+            cursor = conn.cursor()
+            file_content = file.read()
+
+            # Generate a new RAKSTANR
+            cursor.execute("SELECT RAKSTI_SEQ.NEXTVAL FROM DUAL")
+            raksta_nr = cursor.fetchone()[0]
+            print("Generated RAKSTANR:", raksta_nr)  # Debug log
+
+            # Insert the file into the RAKSTI table
+            cursor.execute(
+                "INSERT INTO RAKSTI (RAKSTANR, FILE_NAME, FILES) VALUES (:1, :2, :3)",
+                (raksta_nr, file.filename, file_content)
+            )
+            conn.commit()
+            print("File inserted into database successfully")  # Debug log
+            return jsonify({"success": True, "message": "PDF uploaded successfully!"})
+        except Exception as e:
+            print("Error during database operation:", str(e))  # Debug log
+            if conn:
+                conn.rollback()
+            return jsonify({"error": str(e)}), 500
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
+    else:
+        print("Invalid file format")  # Debug log
+        return jsonify({"error": "Invalid file format. Please upload a PDF file."}), 400
+    
+@pasn_bp.route('/download_pdf', methods=['GET'])
+def download_pdf():
+    file_name = request.args.get('file_name')
+    if not file_name:
+        return jsonify({"error": "File name is required"}), 400
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Cannot connect to the database"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT FILES FROM RAKSTI WHERE FILE_NAME = :1", (file_name,))
+        file_content = cursor.fetchone()[0]
+
+        if not file_content:
+            return jsonify({"error": "File not found"}), 404
+
+        return send_file(
+            io.BytesIO(file_content),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=file_name
+        )
+    except cx_Oracle.DatabaseError as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
