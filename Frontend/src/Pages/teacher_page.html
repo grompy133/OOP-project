@@ -264,8 +264,7 @@
             background-color: white;
             padding: 20px;
             border: 1px solid #888;
-            max-width: 600px; /* Pielāgojiet vērtību pēc vajadzības */
-            width: 90%;
+            width: 50%;
             border-radius: 5px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             display: flex;
@@ -276,10 +275,8 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 1000;
-            box-sizing: border-box;
         }
-
-        .register-btn {
+        register-btn {
             background-color: #007bff;
             color: white;
             padding: 10px;
@@ -324,7 +321,6 @@
             margin-top: 10px; /* Add some space above the button */
             padding: 12px 20px; /* Increase padding for a better button size */
             font-size: 16px; /* Increase button font size */
-            cursor: pointer;
         }
         /* General button hover effect */
         button:hover {
@@ -371,61 +367,6 @@
         th:first-child::after {
             display: none !important; /* Pilnībā noņemam bultiņu */
         }
-
-        #create-teams-modal {
-            width: 400px; /* Pielāgojiet platumu pēc vajadzības */
-            padding: 20px;
-        }
-
-        #teams-input-container {
-            width: 100%; /* Iestatiet konteinera platumu uz 100% */
-        }
-
-        .team-input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            box-sizing: border-box; /* Iekļaut padding un border platumā */
-        }
-
-        .add-team-button-container {
-            text-align: right; /* Novietojiet pogu labajā pusē */
-            margin-bottom: 15px;
-        }
-
-        .add-team-button-container button {
-            background-color: rgb(175, 76, 162);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            font-size: 18px;
-            border-radius: 50%; /* Padariet pogu apaļu */
-            cursor: pointer;
-            min-width: 43px; /* Pielāgojiet vērtību pēc vajadzības */
-            min-height: 43px;
-        }
-
-        .modal-buttons {
-            display: flex;
-            justify-content: flex-end; /* Izlīdziniet pogas pa labi */
-            margin-top: 20px;
-        }
-        
-        .modal-buttons button {
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-left: 10px; /* Pievienojiet atstarpi starp pogām */
-
-        }
-        
-        .register-btn:hover {
-            background-color: #0056b3;
-        }
     </style>
 </head>
 <body>  
@@ -455,7 +396,7 @@
                     </tbody>
                 </table>
             </div>
-            <input type="file" id="paper-file-input" accept=".pdf" style="display:none;">
+            <input type="file" id="paper-file-input" accept=".pdf" style="display:none;" multiple>
             <div id="message"></div>
         </div>
 
@@ -465,6 +406,7 @@
             <button class="add-btn" onclick="toggleAddStudents()">+ Add Students</button>
             <input type="file" id="file-input" accept=".xlsx" style="display:none;">
             <button class="add-btn" onclick="document.getElementById('file-input').click()">Import Students</button>
+            <button class="add-btn" onclick="exportStudents()">Export Students</button>
             <div id="add-students-modal" class="modal" style="display:none;">
                 <!-- Modal content for adding students manually -->
                 <div class="modal-content">
@@ -520,65 +462,43 @@
             </table>
         </div>
     </div>
-
+    
     <!-- Add Seminar Popup -->
     <div id="add-seminar-popup">
         <h3>Add Seminar</h3>
-        <span class="close-btn" onclick="closeModal()">&times;</span>
         <input type="text" id="seminar-name" placeholder="Semināra nosaukums">
         <button onclick="addNewSeminar()">Add</button>
+        <button onclick="closeAddSeminarPopup()">Cancel</button>
     </div>
-    
+
     <!-- Seminar Popup -->
     <div id="seminar-popup">
         <h3 id="seminar-popup-title"></h3>
-        <span class="close-btn" onclick="closeModal()">&times;</span>
+    
         <div class="seminar-popup-buttons">
             <button>Evaluation parameters</button>
             <button>Dates</button>
             <button>Download presentations</button>
             <button>Export grades</button>
-            <button onclick="openCreateTeamsModal()">Create teams</button> </div>
-    
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nr.</th>
-                        <th>Paper</th>
-                        <th>Student name</th>
-                        <th>Team name</th>
-                        <th>Present</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>1</td>
-                        <td>Paper 1</td>
-                        <td>John Doe</td>
-                        <td>Team A</td>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                    </tr>
-                    <tr>
-                        <td>2</td>
-                        <td>Paper 2</td>
-                        <td>Jane Smith</td>
-                        <td>Team B</td>
-                        <td class="checkbox-cell"><input type="checkbox"></td>
-                    </tr>
-                </tbody>
-            </table>
-    </div>
-    
-    <div id="create-teams-modal" class="modal-content" style="display: none;">
-        <span class="close-btn" onclick="closeCreateTeamsModal()">&times;</span>
-        <h3>Create Teams</h3>
-        <div class="add-team-button-container">
-            <button class="add-button" onclick="addTeamInput()">+</button>
+            <button>Create teams</button>
         </div>
-        <div id="teams-input-container">
-            <input type="text" placeholder="Team Name" class="team-input">
-        </div>
-        <button class="register-btn" onclick="registerTeams()">Register</button>
+    
+        <table>
+            <thead>
+                <tr>
+                    <th>Nr.</th>
+                    <th>Paper</th>
+                    <th>Student name</th>
+                    <th>Team name</th>
+                    <th>Present</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically inserted here -->
+            </tbody>
+        </table>
+    
+        <button onclick="closeSeminarPopup()">Cancel</button>
     </div>
 
     <!-- Confirmation Dialog -->
@@ -590,107 +510,72 @@
 
     <script>
 
-    function openCreateTeamsModal() {
-        document.getElementById("create-teams-modal").style.display = "flex";
-    }
-
-    function closeCreateTeamsModal() {
-        document.getElementById("create-teams-modal").style.display = "none";
-    }
-
-    function addTeamInput() {
-        let container = document.getElementById("teams-input-container");
-        let newInput = document.createElement("input");
-        newInput.type = "text";
-        newInput.placeholder = "Team Name";
-        newInput.className = "team-input";
-        container.appendChild(newInput);
-    }
-
-    function registerTeams() {
-    let teamInputs = document.getElementsByClassName("team-input");
-    let teams = [];
-    let allFilled = true;
-
-    for (let input of teamInputs) {
-        if (input.value.trim() === "") {
-            allFilled = false;
-            break;
-        }
-        teams.push(input.value.trim());
-    }
-
-    if (!allFilled) {
-        alert("Please fill in all team names.");
-        return;
-    }
-
-    console.log("Registered Teams:", teams);
-    // Šeit varat pievienot loģiku, lai reģistrētu komandas
-    closeCreateTeamsModal();
-}
-
     // Add event listener to the file input
     document.getElementById('paper-file-input').addEventListener('change', function(event) {
     const files = event.target.files;
 
-    // Pārbauda, vai fails ir izvēlēts
     if (files.length === 0) {
-        alert('Lūdzu, izvēlieties PDF failu!'); 
+        alert('Lūdzu, izvēlieties PDF failus!');
         return;
     }
 
-    // Pārbauda, vai fails ir PDF formātā
-    if (files[0].type !== 'application/pdf') {
-        alert('Lūdzu, izvēlieties tikai PDF failu!'); 
-        return;
+    for (let i = 0; i < files.length; i++) {
+        if (files[i].type !== 'application/pdf') {
+            alert('Lūdzu, izvēlieties tikai PDF failus!');
+            return;
+        }
     }
 
-    // Augšupielādē failu
-    uploadFile(files[0]);
+    for (let i = 0; i < files.length; i++) {
+        uploadFile(files[i]);
+    }
 });
 
 function uploadFile(file) {
     const formData = new FormData();
-    formData.append('file', file); // Pievieno failu FormData objektam
+    formData.append('file', file);
 
-    // Nosūta failu uz serveri
     fetch('/pasniedzejs/upload_pdf', {
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
+        console.log('Backend response:', data); // Debug log
         if (data.success) {
-            alert('PDF fails veiksmīgi augšupielādēts!'); // Veiksmīga augšupielāde
+            // Ja backend atgriež masīvu ar failiem
+            if (Array.isArray(data.files)) {
+                data.files.forEach(file => {
+                    addPaperToTable(file);
+                });
+            } else {
+                // Ja backend atgriež vienu failu
+                addPaperToTable(data.file);
+            }
         } else {
-            alert('Kļūda: ' + data.error); // Kļūdas ziņojums
+            alert('Kļūda: ' + data.error);
         }
     })
     .catch(error => {
         console.error('Kļūda:', error);
-        alert('Kļūda augšupielādējot PDF failu.'); // Tīkla vai servera kļūda
+        alert('Kļūda augšupielādējot PDF failu.');
     });
 }
-        function addPaperLinkToTable(fileName, file) {
-            const tableBody = document.getElementById('paper-table-body');
-            const newRow = tableBody.insertRow();
 
-            const cell1 = newRow.insertCell(0);
-            const cell2 = newRow.insertCell(1);
-            const cell3 = newRow.insertCell(2);
+function addPaperToTable(file) {
+    const tableBody = document.getElementById('paper-table-body');
+    const newRow = tableBody.insertRow();
 
-            cell1.textContent = tableBody.rows.length;
+    const cell1 = newRow.insertCell(0); // Nr.
+    const cell2 = newRow.insertCell(1); // Paper Name (Plain Text)
+    const cell3 = newRow.insertCell(2); // Student Name
 
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(file);
-            link.textContent = fileName;
-            link.target = '_blank';
-            cell2.appendChild(link);
+    cell1.textContent = tableBody.rows.length;
+    cell2.textContent = file.title || "Unknown"; // Ja title nav definēts, izmantojiet "Unknown"
+    cell3.textContent = file.student_name || "No student assigned"; // Ja student_name nav definēts, izmantojiet "No student assigned"
 
-            cell3.textContent = '';
-        }
-
+    console.log('Row added to table:', file); // Debug log
+}
         function addSeminar() {
             // Parādīt popup logu ar semināra pievienošanas formu
             document.getElementById("add-seminar-popup").style.display = "block";
@@ -826,8 +711,6 @@ function uploadFile(file) {
         // Close modal
         function closeModal() {
             document.getElementById("add-students-modal").style.display = "none";
-            document.getElementById("add-seminar-popup").style.display = "none";
-            document.getElementById("seminar-popup").style.display = "none";
         }
 
         // Send email
@@ -1158,7 +1041,72 @@ function renderPapers(papers) {
 
 document.addEventListener("DOMContentLoaded", () => {
     fetchPapers();
+    openTab('papers');  // Open the papers tab by default
 });
+
+
+async function openSeminarPopup(seminarNum, seminarName) {
+    document.getElementById("seminar-popup-title").innerText = seminarName;
+
+    try {
+        const response = await fetch(`/pasniedzejs/get-seminar-papers/${seminarNum}`);
+        if (!response.ok) {
+            throw new Error("Failed to fetch papers");
+        }
+        const data = await response.json();
+
+        console.log("Fetched papers:", data.papers);
+
+        const tbody = document.querySelector("#seminar-popup table tbody");
+        tbody.innerHTML = ""; // Notīram tabulu
+
+        if (data.papers.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='5'>No papers found</td></tr>";
+            return;
+        }
+
+        data.papers.forEach((paper, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${paper.title}</td>
+                <td>${paper.student_name}</td>
+                <td>${paper.group}</td>
+                <td class="checkbox-cell"><input type="checkbox"></td>
+            `;
+            tbody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error fetching papers:", error);
+    }
+
+    document.getElementById("seminar-popup").style.display = "block";
+}
+
+function exportStudents() {
+    fetch('/pasniedzejs/export_students')
+        .then(response => {
+            if (response.ok) {
+                return response.blob();
+            } else {
+                throw new Error('Failed to export students');
+            }
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'students.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(error => {
+            console.error('Error exporting students:', error);
+            alert('Failed to export students');
+        });
+}
 
     </script>
 </body>
