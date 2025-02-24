@@ -231,54 +231,56 @@ def get_papers():
 @pasn_bp.route('/upload_pdf', methods=['POST'])
 def upload_pdf():
     if 'file' not in request.files:
-        print("No file part in request")  # Debug log
         return jsonify({"error": "No file part"}), 400
 
-    file = request.files['file']
-    if not file or file.filename == '':
-        print("No file selected")  # Debug log
-        return jsonify({"error": "No selected file"}), 400
+    files = request.files.getlist('file')
+    if not files or all(file.filename == '' for file in files):
+        return jsonify({"error": "No selected files"}), 400
 
-    print("Received file:", file.filename, file.content_type, file.content_length)  # Debug log
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({"error": "Cannot connect to the database"}), 500
 
-    if file and file.filename.endswith('.pdf'):
-        conn = None
-        cursor = None
-        try:
-            conn = get_db_connection()
-            if conn is None:
-                print("Failed to connect to the database")  # Debug log
-                return jsonify({"error": "Cannot connect to the database"}), 500
+        cursor = conn.cursor()
+        results = []
 
-            cursor = conn.cursor()
-            file_content = file.read()
+        for file in files:
+            if file and file.filename.endswith('.pdf'):
+                file_content = file.read()
 
-            # Generate a new RAKSTANR
-            cursor.execute("SELECT RAKSTI_SEQ.NEXTVAL FROM DUAL")
-            raksta_nr = cursor.fetchone()[0]
-            print("Generated RAKSTANR:", raksta_nr)  # Debug log
+                # Generate a new RAKSTANR
+                cursor.execute("SELECT RAKSTI_SEQ.NEXTVAL FROM DUAL")
+                raksta_nr = cursor.fetchone()[0]
 
-            # Insert the file into the RAKSTI table
-            cursor.execute(
-                "INSERT INTO RAKSTI (RAKSTANR, FILE_NAME, FILES) VALUES (:1, :2, :3)",
-                (raksta_nr, file.filename, file_content)
-            )
-            conn.commit()
-            print("File inserted into database successfully")  # Debug log
-            return jsonify({"success": True, "message": "PDF uploaded successfully!"})
-        except Exception as e:
-            print("Error during database operation:", str(e))  # Debug log
-            if conn:
-                conn.rollback()
-            return jsonify({"error": str(e)}), 500
-        finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
-    else:
-        print("Invalid file format")  # Debug log
-        return jsonify({"error": "Invalid file format. Please upload a PDF file."}), 400
+                # Insert the file into the RAKSTI table
+                cursor.execute(
+                    "INSERT INTO RAKSTI (RAKSTANR, FILE_NAME, FILES) VALUES (:1, :2, :3)",
+                    (raksta_nr, file.filename, file_content)
+                )
+                results.append({
+                    "id": raksta_nr,
+                    "title": file.filename,
+                    "student_name": "No student assigned"
+                })
+
+        conn.commit()
+        return jsonify({
+            "success": True,
+            "message": "PDFs uploaded successfully!",
+            "files": results  # Atgriežam masīvu ar failiem
+        })
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
     
 @pasn_bp.route('/download_pdf', methods=['GET'])
 def download_pdf():
@@ -310,3 +312,113 @@ def download_pdf():
         cursor.close()
         conn.close()
 
+@pasn_bp.route('/get-all-papers', methods=['GET'])
+def get_all_papers():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT R.RAKSTANR, R.FILE_NAME, R.STUDENTUGRUPA, S.VARDS, S.UZVARDS
+            FROM RAKSTI R
+            LEFT JOIN STUDENTI S ON R.STUD_ID = S.STUD_ID
+        """)
+        
+        papers = []
+        for row in cursor:
+            student_name = f"{row[3]} {row[4]}" if row[3] else "No student assigned"
+            papers.append({
+                "id": row[0],
+                "title": row[1],
+                "group": row[2],
+                "student_name": student_name
+            })
+        
+        return jsonify({"papers": papers})
+    
+    except cx_Oracle.DatabaseError as e:
+        return jsonify({"error": "Database query failed"}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+@pasn_bp.route('/get-seminar-papers/<int:seminar_nr>', methods=['GET'])
+def get_seminar_papers(seminar_nr):
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT R.RAKSTANR, R.FILE_NAME, R.STUDENTUGRUPA, S.VARDS, S.UZVARDS
+            FROM RAKSTI R
+            JOIN STUDENTI S ON R.STUD_ID = S.STUD_ID
+            JOIN SEMINARI_RAKSTI SR ON R.RAKSTANR = SR.RAKSTANR
+            WHERE SR.SEMINARANR = :seminar_nr
+        """, {"seminar_nr": seminar_nr})  # Pareizi padots parametrs kā vārdots args
+
+        papers = []
+        for row in cursor.fetchall():  # fetchall() nodrošina, ka tiek atgūti visi ieraksti
+            student_name = f"{row[3]} {row[4]}" if row[3] else "No student assigned"
+            papers.append({
+                "id": row[0],
+                "title": row[1],
+                "group": row[2],
+                "student_name": student_name
+            })
+
+        # Log the fetched papers
+        print("Fetched papers:", papers)
+
+        return jsonify({"papers": papers})
+
+    except cx_Oracle.DatabaseError as e:
+        print("Database error:", e)
+        return jsonify({"error": "Database query failed"}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+@pasn_bp.route('/export_students', methods=['GET'])
+def export_students():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Cannot connect to the database"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT VARDS, UZVARDS, EPASTS FROM STUDENTI")
+        students = cursor.fetchall()
+
+        # Convert the data to a pandas DataFrame
+        df = pd.DataFrame(students, columns=['Vārds', 'Uzvārds', 'E-pasts'])
+
+        # Create an in-memory buffer to store the Excel file
+        output = io.BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Students')
+
+        # Seek to the beginning of the stream
+        output.seek(0)
+
+        # Return the Excel file as a response
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name='students.xlsx'
+        )
+
+    except cx_Oracle.DatabaseError as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
