@@ -264,7 +264,8 @@
             background-color: white;
             padding: 20px;
             border: 1px solid #888;
-            width: 50%;
+            max-width: 600px; /* Pielāgojiet vērtību pēc vajadzības */
+            width: 90%;
             border-radius: 5px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             display: flex;
@@ -275,8 +276,10 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 1000;
+            box-sizing: border-box;
         }
-        register-btn {
+
+        .register-btn {
             background-color: #007bff;
             color: white;
             padding: 10px;
@@ -321,6 +324,7 @@
             margin-top: 10px; /* Add some space above the button */
             padding: 12px 20px; /* Increase padding for a better button size */
             font-size: 16px; /* Increase button font size */
+            cursor: pointer;
         }
         /* General button hover effect */
         button:hover {
@@ -367,6 +371,61 @@
         th:first-child::after {
             display: none !important; /* Pilnībā noņemam bultiņu */
         }
+
+        #create-teams-modal {
+            width: 400px; /* Pielāgojiet platumu pēc vajadzības */
+            padding: 20px;
+        }
+
+        #teams-input-container {
+            width: 100%; /* Iestatiet konteinera platumu uz 100% */
+        }
+
+        .team-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box; /* Iekļaut padding un border platumā */
+        }
+
+        .add-team-button-container {
+            text-align: right; /* Novietojiet pogu labajā pusē */
+            margin-bottom: 15px;
+        }
+
+        .add-team-button-container button {
+            background-color: rgb(175, 76, 162);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            font-size: 18px;
+            border-radius: 50%; /* Padariet pogu apaļu */
+            cursor: pointer;
+            min-width: 43px; /* Pielāgojiet vērtību pēc vajadzības */
+            min-height: 43px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end; /* Izlīdziniet pogas pa labi */
+            margin-top: 20px;
+        }
+        
+        .modal-buttons button {
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px; /* Pievienojiet atstarpi starp pogām */
+
+        }
+        
+        .register-btn:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>  
@@ -396,7 +455,7 @@
                     </tbody>
                 </table>
             </div>
-            <input type="file" id="paper-file-input" accept=".pdf" style="display:none;" multiple>
+            <input type="file" id="paper-file-input" accept=".pdf" style="display:none;">
             <div id="message"></div>
         </div>
 
@@ -462,43 +521,51 @@
             </table>
         </div>
     </div>
-    
+
     <!-- Add Seminar Popup -->
     <div id="add-seminar-popup">
         <h3>Add Seminar</h3>
+        <span class="close-btn" onclick="closeModal()">&times;</span>
         <input type="text" id="seminar-name" placeholder="Semināra nosaukums">
         <button onclick="addNewSeminar()">Add</button>
-        <button onclick="closeAddSeminarPopup()">Cancel</button>
     </div>
-
+    
     <!-- Seminar Popup -->
     <div id="seminar-popup">
         <h3 id="seminar-popup-title"></h3>
-    
+        <span class="close-btn" onclick="closeModal()">&times;</span>
         <div class="seminar-popup-buttons">
             <button>Evaluation parameters</button>
             <button>Dates</button>
             <button>Download presentations</button>
             <button>Export grades</button>
-            <button>Create teams</button>
+            <button onclick="openCreateTeamsModal()">Create teams</button> </div>
+    
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nr.</th>
+                        <th>Paper</th>
+                        <th>Student name</th>
+                        <th>Team name</th>
+                        <th>Present</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+    </div>
+    
+    <div id="create-teams-modal" class="modal-content" style="display: none;">
+        <span class="close-btn" onclick="closeCreateTeamsModal()">&times;</span>
+        <h3>Create Teams</h3>
+        <div class="add-team-button-container">
+            <button class="add-button" onclick="addTeamInput()">+</button>
         </div>
-    
-        <table>
-            <thead>
-                <tr>
-                    <th>Nr.</th>
-                    <th>Paper</th>
-                    <th>Student name</th>
-                    <th>Team name</th>
-                    <th>Present</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Rows will be dynamically inserted here -->
-            </tbody>
-        </table>
-    
-        <button onclick="closeSeminarPopup()">Cancel</button>
+        <div id="teams-input-container">
+            <input type="text" placeholder="Team Name" class="team-input">
+        </div>
+        <button class="register-btn" onclick="registerTeams()">Register</button>
     </div>
 
     <!-- Confirmation Dialog -->
@@ -510,25 +577,64 @@
 
     <script>
 
+    function openCreateTeamsModal() {
+        document.getElementById("create-teams-modal").style.display = "flex";
+    }
+
+    function closeCreateTeamsModal() {
+        document.getElementById("create-teams-modal").style.display = "none";
+    }
+
+    function addTeamInput() {
+        let container = document.getElementById("teams-input-container");
+        let newInput = document.createElement("input");
+        newInput.type = "text";
+        newInput.placeholder = "Team Name";
+        newInput.className = "team-input";
+        container.appendChild(newInput);
+    }
+
+    function registerTeams() {
+    let teamInputs = document.getElementsByClassName("team-input");
+    let teams = [];
+    let allFilled = true;
+
+    for (let input of teamInputs) {
+        if (input.value.trim() === "") {
+            allFilled = false;
+            break;
+        }
+        teams.push(input.value.trim());
+    }
+
+    if (!allFilled) {
+        alert("Please fill in all team names.");
+        return;
+    }
+
+    console.log("Registered Teams:", teams);
+    // Šeit varat pievienot loģiku, lai reģistrētu komandas
+    closeCreateTeamsModal();
+}
+
     // Add event listener to the file input
     document.getElementById('paper-file-input').addEventListener('change', function(event) {
     const files = event.target.files;
 
+    // Pārbauda, vai fails ir izvēlēts
     if (files.length === 0) {
-        alert('Lūdzu, izvēlieties PDF failus!');
+        alert('Lūdzu, izvēlieties PDF failu!'); 
         return;
     }
 
-    for (let i = 0; i < files.length; i++) {
-        if (files[i].type !== 'application/pdf') {
-            alert('Lūdzu, izvēlieties tikai PDF failus!');
-            return;
-        }
+    // Pārbauda, vai fails ir PDF formātā
+    if (files[0].type !== 'application/pdf') {
+        alert('Lūdzu, izvēlieties tikai PDF failu!'); 
+        return;
     }
 
-    for (let i = 0; i < files.length; i++) {
-        uploadFile(files[i]);
-    }
+    // Augšupielādē failu
+    uploadFile(files[0]);
 });
 
 function uploadFile(file) {
@@ -576,6 +682,7 @@ function addPaperToTable(file) {
 
     console.log('Row added to table:', file); // Debug log
 }
+
         function addSeminar() {
             // Parādīt popup logu ar semināra pievienošanas formu
             document.getElementById("add-seminar-popup").style.display = "block";
@@ -711,6 +818,8 @@ function addPaperToTable(file) {
         // Close modal
         function closeModal() {
             document.getElementById("add-students-modal").style.display = "none";
+            document.getElementById("add-seminar-popup").style.display = "none";
+            document.getElementById("seminar-popup").style.display = "none";
         }
 
         // Send email
@@ -1043,7 +1152,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchPapers();
     openTab('papers');  // Open the papers tab by default
 });
-
 
 async function openSeminarPopup(seminarNum, seminarName) {
     document.getElementById("seminar-popup-title").innerText = seminarName;
