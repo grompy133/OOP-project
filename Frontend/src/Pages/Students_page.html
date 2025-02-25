@@ -398,6 +398,7 @@ th:first-child::after {
         <!-- PROFILE Tab Content -->
         <div id="profile" class="sheet-content" style="display: none;">
             <h2>Profile</h2>
+            <input type="hidden" id="student-id" value="{{ students.id }}"> <!-- Hidden field for student_id -->
             <button onclick="editData(this)" class="register-btn">Edit data</button>
             <button onclick="changePassword(this)" class="register-btn">Change password</button>
             <table>
@@ -523,26 +524,33 @@ function viewPaper(id) {
 
 function renderPapers(papers) {
     const tbody = document.getElementById("papers-table-body");
-    tbody.innerHTML = "";  // Clear the table before inserting new data
+    const loggedInStudentId = document.getElementById("student-id").value; // Ielogotā studenta ID
+
+    tbody.innerHTML = "";  // Notīrīt tabulu
 
     papers.sort((a, b) => a.title.localeCompare(b.title)).forEach(paper => {
-        const isChosen = paper.student_id !== null;  // Pārbaudām, vai STUD_ID ir piešķirts
         const row = document.createElement("tr");
+        const isChosen = paper.student_id !== null;
+        const isOwner = paper.student_id == loggedInStudentId;
+
         row.innerHTML = `
             <td>${paper.id}</td>
             <td>
                 <button class="action-button" onclick="choosePaper(${paper.id})" ${isChosen ? "disabled" : ""}>
                     Izvēlēties
                 </button>
-                <button class="action-button1" onclick="declinePaper(${paper.id})" ${!isChosen ? "disabled" : ""}>
+                <button class="action-button1" onclick="declinePaper(${paper.id})" 
+                    ${!isOwner ? "disabled" : ""}> 
                     Atteikties
                 </button>
             </td>
-            <td>${paper.title}</td>
+            <td>${paper.title} ${isChosen ? "(Stud_ID: " + paper.student_id + ")" : ""}</td>
         `;
+
         tbody.appendChild(row);
     });
 }
+
 
 function declinePaper(paperId) {
     fetch(`/students/decline-paper/${paperId}`, {
@@ -571,6 +579,7 @@ function declinePaper(paperId) {
             fetchPapers();
             showTab('papers');
         });
+
     </script>
 </body>
 </html>
