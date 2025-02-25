@@ -230,10 +230,10 @@ def get_papers():
 
 @pasn_bp.route('/upload_pdf', methods=['POST'])
 def upload_pdf():
-    if 'file' not in request.files:
+    if 'files' not in request.files:
         return jsonify({"error": "No file part"}), 400
 
-    files = request.files.getlist('file')
+    files = request.files.getlist('files')
     if not files or all(file.filename == '' for file in files):
         return jsonify({"error": "No selected files"}), 400
 
@@ -308,39 +308,6 @@ def download_pdf():
         )
     except cx_Oracle.DatabaseError as e:
         return jsonify({"error": str(e)}), 500
-    finally:
-        cursor.close()
-        conn.close()
-
-@pasn_bp.route('/get-all-papers', methods=['GET'])
-def get_all_papers():
-    conn = get_db_connection()
-    if conn is None:
-        return jsonify({"error": "Database connection failed"}), 500
-
-    try:
-        cursor = conn.cursor()
-        cursor.execute("""
-            SELECT R.RAKSTANR, R.FILE_NAME, R.STUDENTUGRUPA, S.VARDS, S.UZVARDS
-            FROM RAKSTI R
-            LEFT JOIN STUDENTI S ON R.STUD_ID = S.STUD_ID
-        """)
-        
-        papers = []
-        for row in cursor:
-            student_name = f"{row[3]} {row[4]}" if row[3] else "No student assigned"
-            papers.append({
-                "id": row[0],
-                "title": row[1],
-                "group": row[2],
-                "student_name": student_name
-            })
-        
-        return jsonify({"papers": papers})
-    
-    except cx_Oracle.DatabaseError as e:
-        return jsonify({"error": "Database query failed"}), 500
-    
     finally:
         cursor.close()
         conn.close()
