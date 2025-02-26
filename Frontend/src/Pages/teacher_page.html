@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -110,22 +113,19 @@
         }
 
         #add-seminar-popup input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 15px; /* Add space below inputs */
+            width: 80%; /* Ensure inputs and label take full width */
+            padding: 10px; /* Increase padding for better readability */
             font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
         }
 
         #add-seminar-popup button {
-            background-color: #4CAF50;
+            background-color: #007bff;
             color: white;
+            padding: 10px;
             border: none;
-            padding: 10px 15px;
             cursor: pointer;
-            font-size: 18px;
-            border-radius: 5px;
+            margin-bottom: 10px;
         }
 
         /* Seminar Popup */
@@ -139,8 +139,23 @@
             padding: 20px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
             border-radius: 8px;
-            width: 800px;
+            width: 80%;  /* Maini atbilstoši nepieciešamajam platumam */
+            max-width: 1000px;  /* Maksimālais platums */
+            max-height: 80vh;
+            overflow: auto;  /* Ja saturs pārsniedz izmēru, parādīsies rullītis */
+            margin: auto;
             text-align: center;
+        }
+
+        #seminar-popup table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Tabulas konteiners, kas ļaus ritināt tabulas saturu */
+        #seminar-popup .table-container {
+            max-height: 300px;  /* Piemērs, regulējams atkarībā no vajadzībām */
+            overflow-y: auto;  /* Parādīs vertikālo rullīti */
         }
 
         .seminar-popup-buttons {
@@ -502,8 +517,8 @@
             <button class="add-button" onclick="addSeminar()">+</button>
             <h2>Seminars</h2>
             <ul id="seminar-list">
-                <li><a href="#" onclick="openSeminarPopup(1, 'Seminārs 1')">Seminars #1</a></li>
-                <li><a href="#" onclick="openSeminarPopup(2, 'Seminārs 2')">Seminars #2</a></li>
+                <li><a href="#" onclick="openSeminarPopup(1, 'Seminar 1')">Seminar #1</a></li>
+                <li><a href="#" onclick="openSeminarPopup(2, 'Seminar 2')">Seminar #2</a></li>
             </ul>
         </div>
 
@@ -523,11 +538,11 @@
     </div>
 
     <!-- Add Seminar Popup -->
-    <div id="add-seminar-popup">
+    <div id="add-seminar-popup" class="modal-content" style="display: none;">
         <h3>Add Seminar</h3>
         <span class="close-btn" onclick="closeModal()">&times;</span>
-        <input type="text" id="seminar-name" placeholder="Semināra nosaukums">
-        <button onclick="addNewSeminar()">Add</button>
+        <input type="text" id="seminar-name" placeholder="Seminar name">
+        <button class="add-btn" onclick="addNewSeminar()">Add</button>
     </div>
     
     <!-- Seminar Popup -->
@@ -540,7 +555,7 @@
             <button>Download presentations</button>
             <button>Export grades</button>
             <button onclick="openCreateTeamsModal()">Create teams</button> </div>
-    
+            <div class="table-container">
             <table>
                 <thead>
                     <tr>
@@ -554,6 +569,7 @@
                 <tbody>
                 </tbody>
             </table>
+            </div>
     </div>
     
     <div id="create-teams-modal" class="modal-content" style="display: none;">
@@ -594,7 +610,8 @@
         container.appendChild(newInput);
     }
 
-    function registerTeams() {
+// Reģistrē komandas un sadala studentus nejauši
+function registerTeams() {
     let teamInputs = document.getElementsByClassName("team-input");
     let teams = [];
     let allFilled = true;
@@ -612,10 +629,47 @@
         return;
     }
 
-    console.log("Registered Teams:", teams);
-    // Šeit varat pievienot loģiku, lai reģistrētu komandas
-    closeCreateTeamsModal();
+    fetch("/pasniedzejs/register_teams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ teams: teams })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert("Teams registered successfully!");
+            closeCreateTeamsModal();
+            loadSeminarStudents(); // Atsvaidzina tabulu ar studentiem
+        } else {
+            alert("Error: " + data.error);
+        }
+    })
+    .catch(error => console.error("Error:", error));
 }
+
+// Ielādē studentus un atjauno tabulu
+function loadSeminarStudents() {
+    fetch('/pasniedzejs/get_students_list')
+    .then(response => response.json())
+    .then(students => {
+        let tableBody = document.querySelector("#seminar-popup tbody");
+        tableBody.innerHTML = ""; // Iztīra tabulu
+
+        students.forEach((student, index) => {
+            let row = `<tr>
+                <td>${index + 1}</td>
+                <td>Paper ${index + 1}</td>
+                <td>${student.name}</td>
+                <td>${student.group || "No group"}</td>
+                <td><input type="checkbox"></td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+    })
+    .catch(error => console.error("Error:", error));
+}
+    // Kad lapa ielādējas, ielādē studentus
+    document.addEventListener("DOMContentLoaded", loadSeminarStudents);
 
     // Add event listener to the file input
     document.getElementById('paper-file-input').addEventListener('change', function(event) {
