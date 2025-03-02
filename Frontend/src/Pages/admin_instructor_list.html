@@ -466,7 +466,8 @@ th:first-child::after {
         <div id="profile" class="sheet-content" style="display: none;">
             <h2>Profile</h2>
             <button onclick="editData(this)" class="add-btn">Edit data</button>
-            <button onclick="changePassword(this)" class="add-btn">Change password</button>
+            <button id="changePass" class="add-btn" onclick="changePassword(this)">Change password</button>
+            <input type="hidden" id="admin-id" value="{{ admin.id }}" style="display: none;">
             <table>
                 <tr><td>Name:</td><td><input type="text" id="name" value="{{ admin.name }}" readonly></td></tr>
                 <tr><td>Surname:</td><td><input type="text" id="surname" value="{{ admin.surname }}" readonly></td></tr>
@@ -654,8 +655,11 @@ function editData(button) {
     let canEdit = false;
     let updatedData = {};
 
+    const adminId = document.getElementById('admin-id').value;
+    updatedData['admin-id'] = adminId;  // Add it to the updated data
+
     inputs.forEach(input => {
-        if (input.id !== "password") {  // Skip password field (if needed)
+        if (input.id !== "password" && input.id !== "admin-id") {  // Skip password and admin-id field
             if (input.readOnly) {
                 input.readOnly = false;  // Make the field editable
                 canEdit = true;  // Mark as editable
@@ -677,30 +681,36 @@ function editData(button) {
         // Send updated data to the backend
         sendUpdatedProfileData(updatedData);
     }
+
 }
 
 // Function to send the updated profile data to the backend
 function sendUpdatedProfileData(data) {
-    fetch('/update-profile', {
-        method: 'POST',  // Assuming the backend uses POST to handle the update
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),  // Convert the data to JSON
+    fetch('/admin/edit_profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)  // Send the collected updated data
     })
-    .then(response => {
-        if (response.ok) {
+    .then(response => response.json())
+    .then(responseData => {
+        if (responseData.success) {
+            // Update the table or UI accordingly
+            document.getElementById("name").value = data.name;
+            document.getElementById("surname").value = data.surname;
+            document.getElementById("username").value = data.username;
+            document.getElementById("email").value = data.email;
+
             alert("Profile updated successfully!");
-            // Optionally, you can reload the data or refresh the page to show the updated data
         } else {
-            alert("Failed to update profile. Please try again.");
+            alert("Error updating admin: " + responseData.error);
         }
     })
     .catch(error => {
-        console.error("Error updating profile:", error);
-        alert("An error occurred. Please try again.");
+        console.error("Error updating admin:", error);
+        alert("An error occurred while updating the admin.");
     });
 }
+
 
 function saveInstructor(button) {
     let row = button.closest('tr');
@@ -835,6 +845,11 @@ function cancelDelete() {
             alert("An error occurred while fetching the instructors.");
         });
 }
+
+function changePassword() {
+    window.location.href = "/admin/parole";  // Directly redirect to the page
+}
+
 
 fetchAdmins();
 
