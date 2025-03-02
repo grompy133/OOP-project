@@ -1,21 +1,31 @@
 from flask import Flask, jsonify, Blueprint, render_template, request
 import cx_Oracle
 from flask import session
+import oracledb
 
-# Datu bāzes savienojuma detaļas
-DB_USERNAME = 'C##sistema'
-DB_PASSWORD = '=dAb21Jm09'
-DB_DSN = 'localhost:1521/ORCL'
+# Database connection parameters
+DB_USERNAME = 'ADMIN'
+DB_PASSWORD = 'msu8nTwIkf6isAR5qBmp'
+DB_DSN = "v9n3ba1erzl8nuba_high"
+DB_WALLET_PASSWORD = "dR3kQd8utf5jLyqRyeFx"
+DB_WALLET_LOCATION = r"C:\\Users\\Boris\\Desktop\\Wallet_V9N3BA1ERZL8NUBA"
 
-# Funkcija, lai izveidotu savienojumu ar datu bāzi
+# Function to get database connection
 def get_db_connection():
     try:
-        conn = cx_Oracle.connect(user=DB_USERNAME, password=DB_PASSWORD, dsn=DB_DSN)
-        print("Savienojums ar datu bāzi veiksmīgi izveidots!")
-        return conn
-    except cx_Oracle.DatabaseError as e:
-        print("Datu bāzes savienojuma kļūda:", e)
-        return None
+        connection = oracledb.connect(
+            config_dir=DB_WALLET_LOCATION,
+            user=DB_USERNAME,
+            password=DB_PASSWORD,
+            dsn=DB_DSN,
+            wallet_location=DB_WALLET_LOCATION,
+            wallet_password=DB_WALLET_PASSWORD
+        )
+        return connection
+    except oracledb.DatabaseError as e:
+        error, = e.args
+        print(f"Database connection error: {error.message}")
+        return None 
 
 # Create a Blueprint
 stud_bp = Blueprint('students', __name__)
@@ -63,7 +73,7 @@ def get_papers():
 
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT RAKSTANR, FILE_NAME, STUD_ID FROM RAKSTI")
+        cursor.execute("SELECT RAKSTANR, NOSAUKUMS, STUD_ID FROM RAKSTI")
 
         papers = []
         for row in cursor:

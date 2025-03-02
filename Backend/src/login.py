@@ -1,9 +1,11 @@
 import hashlib # lai varētu paroli hash
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 import cx_Oracle
+import oracledb
 import os
 from admini import admin_bp
 from pasniedzejs import pasn_bp
+from stud import stud_bp
 
 app = Flask(
     __name__,
@@ -12,21 +14,33 @@ app = Flask(
 )
 app.secret_key = 'your_secret_key'
 
-# Datu bāzes savienojuma parametri
-DB_USERNAME = 'C##sistema'
-DB_PASSWORD = '=dAb21Jm09'
-DB_DSN = 'localhost:1521/ORCL'
+# Database connection parameters
+DB_USERNAME = 'ADMIN'
+DB_PASSWORD = 'msu8nTwIkf6isAR5qBmp'
+DB_DSN = "v9n3ba1erzl8nuba_high"
+DB_WALLET_PASSWORD = "dR3kQd8utf5jLyqRyeFx"
+DB_WALLET_LOCATION = r"C:\\Users\\Boris\\Desktop\\Wallet_V9N3BA1ERZL8NUBA"
 
-# Funkcija savienošanai ar datu bāzi
+# Function to get database connection
 def get_db_connection():
     try:
-        return cx_Oracle.connect(user=DB_USERNAME, password=DB_PASSWORD, dsn=DB_DSN)
-    except cx_Oracle.DatabaseError as e:
-        print("Savienošanas kļūda:", e)
+        connection = oracledb.connect(
+            config_dir=DB_WALLET_LOCATION,
+            user=DB_USERNAME,
+            password=DB_PASSWORD,
+            dsn=DB_DSN,
+            wallet_location=DB_WALLET_LOCATION,
+            wallet_password=DB_WALLET_PASSWORD
+        )
+        return connection
+    except oracledb.DatabaseError as e:
+        error, = e.args
+        print(f"Database connection error: {error.message}")
         return None
-
+    
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(pasn_bp, url_prefix='/pasniedzejs')
+app.register_blueprint(stud_bp, url_prefix='/students')
 
 # Lietotāja klase
 class User:
@@ -62,7 +76,7 @@ class User:
                     SELECT STUD_ID, VARDS, UZVARDS, LIETOTAJVARDS, EPASTS, PAROLE, 'students' AS user_type 
                     FROM STUDENTI 
                     WHERE EPASTS = :1 OR LIETOTAJVARDS = :1
-                """, (email_or_username,))
+                """, (email_or_username,)*6)
                 
                 user_data = cursor.fetchone() #iegūst pirmo atrasto lietotāju
                 if user_data:
