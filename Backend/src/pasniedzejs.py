@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, jsonify, request, send_file
 import cx_Oracle
 import pandas as pd
 import io
+import random
 
 # Database connection details
 DB_USERNAME = 'C##sistema'
@@ -321,15 +322,16 @@ def get_seminar_papers(seminar_nr):
     try:
         cursor = conn.cursor()
         cursor.execute("""
-            SELECT R.RAKSTANR, R.FILE_NAME, R.STUDENTUGRUPA, S.VARDS, S.UZVARDS
+            SELECT R.RAKSTANR, R.FILE_NAME, G.NOSAUKUMS AS STUDENTUGRUPA, S.VARDS, S.UZVARDS
             FROM RAKSTI R
             JOIN STUDENTI S ON R.STUD_ID = S.STUD_ID
+            JOIN GRUPA G ON S.GRUPA_ID = G.GRUPA_ID
             JOIN SEMINARI_RAKSTI SR ON R.RAKSTANR = SR.RAKSTANR
             WHERE SR.SEMINARANR = :seminar_nr
-        """, {"seminar_nr": seminar_nr})  # Pareizi padots parametrs kā vārdots args
+        """, {"seminar_nr": seminar_nr})
 
         papers = []
-        for row in cursor.fetchall():  # fetchall() nodrošina, ka tiek atgūti visi ieraksti
+        for row in cursor.fetchall():
             student_name = f"{row[3]} {row[4]}" if row[3] else "No student assigned"
             papers.append({
                 "id": row[0],
@@ -337,9 +339,6 @@ def get_seminar_papers(seminar_nr):
                 "group": row[2],
                 "student_name": student_name
             })
-
-        # Log the fetched papers
-        print("Fetched papers:", papers)
 
         return jsonify({"papers": papers})
 
@@ -386,6 +385,113 @@ def export_students():
 
     except cx_Oracle.DatabaseError as e:
         return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+# 1. Saglabā komandas un piešķir studentus
+@pasn_bp.route('/register_teams/<int:seminar_nr>', methods=['POST'])
+def register_teams(seminar_nr):
+    # Pārbauda, vai seminar_nr ir saņemts
+    if not seminar_nr:
+        return jsonify({"error": "Seminar number (seminar_nr) is missing"}), 400
+
+    # Pārbauda, vai seminar_nr ir skaitlis
+    if not isinstance(seminar_nr, int):
+        return jsonify({"error": "Seminar number (seminar_nr) must be an integer"}), 400
+
+    # Ielogojam saņemto seminar_nr
+    print(f"Received seminar_nr: {seminar_nr}")  # Atkļūdošanas ziņojums
+
+    data = request.json
+    teams = data.get('teams', [])
+
+    if not teams:
+        return jsonify({"error": "No teams provided"}), 400
+
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+
+    try:
+        # Pārbauda, vai SEMINARANR eksistē SEMINARI tabulā
+        cursor.execute("SELECT COUNT(*) FROM SEMINARI WHERE SEMINARANR = :seminar_nr", {"seminar_nr": seminar_nr})
+        seminar_exists = cursor.fetchone()[0]
+
+        if seminar_exists == 0:
+            return jsonify({"error": f"Seminar with SEMINARANR {seminar_nr} does not exist"}), 400
+
+        # Ielogojam esošās grupas
+        cursor.execute("SELECT GRUPA_ID FROM GRUPA WHERE SEMINARANR = :seminar_nr ORDER BY GRUPA_ID", {"seminar_nr": seminar_nr})
+        existing_grupa_ids = [row[0] for row in cursor.fetchall()]
+        print(f"Existing GRUPA_IDs for seminar_nr {seminar_nr}: {existing_grupa_ids}")  # Atkļūdošanas ziņojums
+
+        # Iegūstam maksimālo GRUPA_ID
+        cursor.execute("SELECT NVL(MAX(GRUPA_ID), 0) FROM GRUPA")
+        max_grupa_id = cursor.fetchone()[0]
+        print(f"Max GRUPA_ID for seminar_nr {seminar_nr}: {max_grupa_id}")  # Atkļūdošanas ziņojums
+
+        for i, team_name in enumerate(teams):
+            if i < len(existing_grupa_ids):
+                # Atjaunina esošo grupu
+                cursor.execute("""
+                    UPDATE GRUPA 
+                    SET NOSAUKUMS = :team_name 
+                    WHERE GRUPA_ID = :grupa_id AND SEMINARANR = :seminar_nr
+                """, {"team_name": team_name, "grupa_id": existing_grupa_ids[i], "seminar_nr": seminar_nr})
+            else:
+                # Pievieno jaunu grupu
+                max_grupa_id += 1
+                cursor.execute("""
+                    INSERT INTO GRUPA (GRUPA_ID, NOSAUKUMS, SEMINARANR) 
+                    VALUES (:grupa_id, :team_name, :seminar_nr)
+                """, {"grupa_id": max_grupa_id, "team_name": team_name, "seminar_nr": seminar_nr})
+
+        conn.commit()
+
+               # Atjaunina studentus, kuriem ir raksti seminārā
+        cursor.execute("""
+            SELECT DISTINCT S.STUD_ID
+            FROM STUDENTI S
+            JOIN RAKSTI R ON S.STUD_ID = R.STUD_ID
+            JOIN SEMINARI_RAKSTI SR ON R.RAKSTANR = SR.RAKSTANR
+            WHERE SR.SEMINARANR = :seminar_nr
+        """, {"seminar_nr": seminar_nr})
+
+        student_ids_with_papers = [row[0] for row in cursor.fetchall()]
+        print(f"Students with papers in seminar {seminar_nr}: {student_ids_with_papers}")  # Atkļūdošanas ziņojums
+
+        if student_ids_with_papers:
+            random.shuffle(student_ids_with_papers)
+            cursor.execute("""
+                SELECT GRUPA_ID FROM GRUPA WHERE SEMINARANR = :seminar_nr ORDER BY GRUPA_ID
+            """, {"seminar_nr": seminar_nr})
+            grupa_ids = [row[0] for row in cursor.fetchall()]
+            print(f"GRUPA_IDs for seminar_nr {seminar_nr}: {grupa_ids}")  # Atkļūdošanas ziņojums
+
+            for i, student_id in enumerate(student_ids_with_papers):
+                assigned_team = grupa_ids[i % len(grupa_ids)]
+                cursor.execute("""
+                    UPDATE STUDENTI 
+                    SET GRUPA_ID = :grupa_id 
+                    WHERE STUD_ID = :student_id
+                """, {"grupa_id": assigned_team, "student_id": student_id})
+
+        conn.commit()
+        return jsonify({"message": "Teams updated and students assigned"})
+
+    except cx_Oracle.DatabaseError as e:
+        conn.rollback()
+        error_message = f"Database error: {e}"
+        print(error_message)  # Atkļūdošanas ziņojums
+        return jsonify({"error": "Database operation failed", "details": error_message}), 500
+    except Exception as e:
+        conn.rollback()
+        error_message = f"Unexpected error: {e}"
+        print(error_message)  # Atkļūdošanas ziņojums
+        return jsonify({"error": "An unexpected error occurred", "details": error_message}), 500
     finally:
         cursor.close()
         conn.close()
