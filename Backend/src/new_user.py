@@ -6,32 +6,33 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import secrets
 import string
+import oracledb
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
-# Datu bāzes savienojuma parametri
-DB_USERNAME = 'C##sistema'
-DB_PASSWORD = '=dAb21Jm09'
-DB_DSN = 'localhost:1521/ORCL'
+# Database connection parameters
+DB_USERNAME = 'ADMIN'
+DB_PASSWORD = 'msu8nTwIkf6isAR5qBmp'
+DB_DSN = "v9n3ba1erzl8nuba_high"
+DB_WALLET_PASSWORD = "dR3kQd8utf5jLyqRyeFx"
+DB_WALLET_LOCATION = r"C:\\Users\\Boris\\Desktop\\Wallet_V9N3BA1ERZL8NUBA"
 
-# E-pasta sūtīšanas parametri
-SENDER_EMAIL = ""  # Aizstājiet ar savu e-pastu
-SENDER_PASSWORD = ""  # Izmantojiet aplikācijas paroli
-SMTP_SERVER = "smtp.gmail.com"  # Gmail SMTP serveris
-SMTP_PORT = 587
-
-# Funkcija savienošanai ar Oracle datu bāzi
+# Function to get database connection
 def get_db_connection():
     try:
-        connection = cx_Oracle.connect(
+        connection = oracledb.connect(
+            config_dir=DB_WALLET_LOCATION,
             user=DB_USERNAME,
             password=DB_PASSWORD,
-            dsn=DB_DSN
+            dsn=DB_DSN,
+            wallet_location=DB_WALLET_LOCATION,
+            wallet_password=DB_WALLET_PASSWORD
         )
         return connection
-    except cx_Oracle.DatabaseError as e:
-        print("Savienošanas kļūda:", e)
+    except oracledb.DatabaseError as e:
+        error, = e.args
+        print(f"Database connection error: {error.message}")
         return None
 
 # Funkcija paroles šifrēšanai ar SHA-256
