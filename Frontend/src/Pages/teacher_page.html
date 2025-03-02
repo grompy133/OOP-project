@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -607,66 +610,6 @@
         container.appendChild(newInput);
     }
 
-// Reģistrē komandas un sadala studentus nejauši
-function registerTeams() {
-    let teamInputs = document.getElementsByClassName("team-input");
-    let teams = [];
-    let allFilled = true;
-
-    for (let input of teamInputs) {
-        if (input.value.trim() === "") {
-            allFilled = false;
-            break;
-        }
-        teams.push(input.value.trim());
-    }
-
-    if (!allFilled) {
-        alert("Please fill in all team names.");
-        return;
-    }
-
-    fetch("/pasniedzejs/register_teams", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teams: teams })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert("Teams registered successfully!");
-            closeCreateTeamsModal();
-            loadSeminarStudents(); // Atsvaidzina tabulu ar studentiem
-        } else {
-            alert("Error: " + data.error);
-        }
-    })
-    .catch(error => console.error("Error:", error));
-}
-
-// Ielādē studentus un atjauno tabulu
-function loadSeminarStudents() {
-    fetch('/pasniedzejs/get_students_list')
-    .then(response => response.json())
-    .then(students => {
-        let tableBody = document.querySelector("#seminar-popup tbody");
-        tableBody.innerHTML = ""; // Iztīra tabulu
-
-        students.forEach((student, index) => {
-            let row = `<tr>
-                <td>${index + 1}</td>
-                <td>Paper ${index + 1}</td>
-                <td>${student.name}</td>
-                <td>${student.group || "No group"}</td>
-                <td><input type="checkbox"></td>
-            </tr>`;
-            tableBody.innerHTML += row;
-        });
-    })
-    .catch(error => console.error("Error:", error));
-}
-    // Kad lapa ielādējas, ielādē studentus
-    document.addEventListener("DOMContentLoaded", loadSeminarStudents);
 
     // Add event listener to the file input
     document.getElementById('paper-file-input').addEventListener('change', function(event) {
@@ -1142,8 +1085,8 @@ function cancelDelete() {
                 headerCells[columnIndex].classList.add("desc");
             }
         }
-        // Edit Data
-        function editData(button) {
+    // Edit Data
+    function editData(button) {
     const inputs = document.querySelectorAll('#profile input');
     let canEdit = false;
     let updatedData = {};
@@ -1229,8 +1172,18 @@ document.addEventListener("DOMContentLoaded", () => {
     openTab('papers');  // Open the papers tab by default
 });
 
+let currentSeminarNum = null; // Globālais mainīgais, lai saglabātu pašreizējo semināra numuru
+
 async function openSeminarPopup(seminarNum, seminarName) {
+    console.log("openSeminarPopup called with seminarNum:", seminarNum); // Debug log
+
+    // ✅ Update the global variable
+    currentSeminarNum = seminarNum; 
+
+    // ✅ Update UI elements
     document.getElementById("seminar-popup-title").innerText = seminarName;
+    document.getElementById("seminar-popup").setAttribute("data-seminar-num", seminarNum);
+    document.getElementById("seminar-popup").style.display = "block";
 
     try {
         const response = await fetch(`/pasniedzejs/get-seminar-papers/${seminarNum}`);
@@ -1242,29 +1195,104 @@ async function openSeminarPopup(seminarNum, seminarName) {
         console.log("Fetched papers:", data.papers);
 
         const tbody = document.querySelector("#seminar-popup table tbody");
-        tbody.innerHTML = ""; // Notīram tabulu
+        tbody.innerHTML = ""; // Clear table
 
         if (data.papers.length === 0) {
             tbody.innerHTML = "<tr><td colspan='5'>No papers found</td></tr>";
-            return;
+        } else {
+            data.papers.forEach((paper, index) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${paper.title}</td>
+                    <td>${paper.student_name}</td>
+                    <td>${paper.group}</td>
+                    <td class="checkbox-cell"><input type="checkbox"></td>
+                `;
+                tbody.appendChild(row);
+            });
         }
 
-        data.papers.forEach((paper, index) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${paper.title}</td>
-                <td>${paper.student_name}</td>
-                <td>${paper.group}</td>
-                <td class="checkbox-cell"><input type="checkbox"></td>
-            `;
-            tbody.appendChild(row);
-        });
     } catch (error) {
         console.error("Error fetching papers:", error);
     }
+}
 
-    document.getElementById("seminar-popup").style.display = "block";
+async function registerTeams() {
+    console.log("registerTeams called with currentSeminarNum:", currentSeminarNum); // Debug log
+
+    if (!currentSeminarNum) {
+        alert("No seminar selected. Please select a seminar first.");
+        return;
+    }
+
+    const seminarNum = currentSeminarNum;
+    console.log("Registering teams for seminarNum:", seminarNum); // Debug log
+
+    let teamInputs = document.getElementsByClassName("team-input");
+    let teams = [];
+    let allFilled = true;
+
+    for (let input of teamInputs) {
+        if (input.value.trim() === "") {
+            allFilled = false;
+            break;
+        }
+        teams.push(input.value.trim());
+    }
+
+    if (!allFilled) {
+        alert("Please fill in all team names.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/pasniedzejs/register_teams/${seminarNum}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ teams: teams })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to register teams");
+        }
+
+        const data = await response.json();
+
+        if (data.message) {
+            alert("Teams registered successfully!");
+            closeCreateTeamsModal();
+
+            // Reload seminar papers
+            const papersResponse = await fetch(`/pasniedzejs/get-seminar-papers/${seminarNum}`);
+            const papersData = await papersResponse.json();
+
+            const tbody = document.querySelector("#seminar-popup table tbody");
+            tbody.innerHTML = ""; // Clear table
+
+            if (papersData.papers.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='5'>No papers found</td></tr>";
+            } else {
+                papersData.papers.forEach((paper, index) => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${paper.title}</td>
+                        <td>${paper.student_name}</td>
+                        <td>${paper.group}</td>
+                        <td class="checkbox-cell"><input type="checkbox"></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Error: " + error.message);
+    }
 }
 
 function exportStudents() {
