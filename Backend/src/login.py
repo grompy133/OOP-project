@@ -3,6 +3,8 @@ from flask import Flask, request, jsonify, render_template, redirect, url_for, s
 import cx_Oracle
 import oracledb
 import os
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer, BadSignature
 from admini import admin_bp
 from pasniedzejs import pasn_bp
 from stud import stud_bp
@@ -13,6 +15,17 @@ app = Flask(
     static_folder=os.path.abspath('../../Frontend/src/Styles')    # Statisko failu mape
 )
 app.secret_key = 'your_secret_key'
+
+app.config['MAIL_SERVER'] = 'mail.inbox.lv'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = 'vangogilicock123@inbox.lv'  # Our email
+app.config['MAIL_PASSWORD'] = '7P92BrGysP'  # Our password
+app.config['MAIL_DEFAULT_SENDER'] = 'vangogilicock123@inbox.lv'
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+mail = Mail(app)
 
 # Database connection parameters
 DB_USERNAME = 'ADMIN'
@@ -39,6 +52,33 @@ def get_db_connection():
         print(f"Database connection error: {error.message}")
         return None
     
+def generate_reset_token(user_id, user_type):
+    # Create a dictionary to hold the user_id and user_type
+    data = {
+        'user_id': user_id,
+        'user_type': user_type
+    }
+
+    # Serialize the data dictionary into a token
+    return serializer.dumps(data, salt='password-reset')
+
+def verify_reset_token(token, expiration=3600):
+    
+    try:
+        # Load the data from the token
+        data = serializer.loads(token, salt='password-reset', max_age=expiration)
+        # Extract email and user_type from the data
+        user_id = data.get('user_id')
+        user_type = data.get('user_type')
+        
+        # Ensure the email and user_type are valid
+        if user_id and user_type:
+            return user_id, user_type
+        else:
+            return None, None
+    except (BadSignature, TypeError):
+        return None, None
+
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(pasn_bp, url_prefix='/pasniedzejs')
 app.register_blueprint(stud_bp, url_prefix='/students')
@@ -77,7 +117,7 @@ class User:
                     SELECT STUD_ID, VARDS, UZVARDS, LIETOTAJVARDS, EPASTS, PAROLE, 'students' AS user_type 
                     FROM STUDENTI 
                     WHERE EPASTS = :1 OR LIETOTAJVARDS = :1
-                """, (email_or_username,)*6)
+                """, (email_or_username,))
                 
                 user_data = cursor.fetchone() #iegūst pirmo atrasto lietotāju
                 if user_data:
@@ -98,7 +138,6 @@ def index():
 def login():
     email_or_username = request.form.get('email_or_username')
     password = request.form.get('password')
-
     user = User.authenticate(email_or_username, password)  # Authenticate the user
 
     if user:
@@ -136,6 +175,7 @@ def teacher_page():
                 if user_data:
                     # Create a dictionary with the teacher's data
                     pasniedzejs = {
+                        "id": user_id,
                         "name": user_data[0],
                         "surname": user_data[1],
                         "username": user_data[2],
@@ -164,11 +204,12 @@ def student_page():
                 cursor.execute("""
                     SELECT VARDS, UZVARDS, LIETOTAJVARDS, EPASTS, PAROLE
                     FROM STUDENTI WHERE STUD_ID = :1
-                """, (int(user_id),))
+                """, (user_id,))
                 user_data = cursor.fetchone()
                 
                 if user_data:
                     students = {
+                        "id": user_id,
                         "name": user_data[0],
                         "surname": user_data[1],
                         "username": user_data[2],
@@ -199,6 +240,7 @@ def admin_page():
                 
                 if user_data:
                     admin = {
+                        "id": user_id,
                         "name": user_data[0],
                         "surname": user_data[1],
                         "username": user_data[2],
@@ -212,14 +254,128 @@ def admin_page():
     
     return redirect(url_for('index'))  # Ja nav administrators, sūta atpakaļ uz sākumlapu
 
-@app.route('/password_reset')
-def password_reset():
-    return render_template('paroles_atjau.html')
+# --- PASSWORD RESET FUNCTIONALITY ---
+@app.route('/update_password', methods=['POST'])
+def update_password():
+    if 'user_id' not in session:
+        return jsonify({"success": False, "message": "User not authenticated"}), 401
+
+    data = request.get_json()
+    new_password = data.get('new_password')
+    token = data.get('token')  # Token is optional
+    if not new_password:
+        return jsonify({"success": False, "message": "New password is required"}), 400
+    
+    if token:
+        user_id, user_type = verify_reset_token(token)
+        if not user_id:
+            return jsonify({"success": False, "message": "Invalid or expired token"}), 400
+    else:
+        user_id = session['user_id']
+        user_type = session['user_type']
+        if 'user_id' not in session:
+            return jsonify({"success": False, "message": "User not authenticated"}), 401
+
+    hashed_password = User.hash_password(new_password)
+    table_map = {
+        'students': 'STUDENTI',
+        'pasniedzējs': 'PASNIEDZEJI',
+        'administrators': 'ADMINISTRATORS'
+    }
+
+    if user_type not in table_map:
+        return jsonify({"success": False, "message": "Invalid user type"}), 400
+
+    table_name = table_map[user_type]
+
+    if table_name == "ADMINISTRATORS":
+        id_column = "ADMIN_ID"  
+    elif table_name == "PASNIEDZEJI":
+        id_column = "PASN_ID"
+    elif table_name == "STUDENTI":
+        id_column = "STUD_ID"
+
+    connection = get_db_connection()
+    if not connection:
+        return jsonify({"success": False, "message": "Database connection failed"}), 500
+
+    try:
+        cursor = connection.cursor()
+        
+        query = f"UPDATE {table_name} SET PAROLE = :1 WHERE {id_column} = :2"
+        print(query)
+        cursor.execute(query, (hashed_password, user_id))
+        connection.commit()
+        
+        if cursor.rowcount == 0:
+            return jsonify({"success": False, "message": "No rows updated. Check user_id."}), 400
+
+        return jsonify({"success": True, "message": "Password updated successfully"})
+    
+    finally:
+        cursor.close()  
+        connection.close()
+
+@app.route('/tologin')
+def toLogin():
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
     session.clear() #notīra datus no sesijas
     return redirect(url_for('index')) #pāradrese uz sākumlapu
+
+@app.route('/parole')
+def parole():
+        return render_template('paroles_atjau.html')
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password_page(token):
+    # logic to verify token and allow password reset
+    return render_template('new_password.html', token=token)
+
+@app.route('/send-reset-email', methods=['POST'])
+def send_reset_email():
+    email = request.json.get('email')
+    
+    connection = get_db_connection()
+    if connection:
+        cursor = connection.cursor()
+        try:
+            cursor.execute("""
+                SELECT 'students' AS user_type, STUD_ID AS user_id FROM STUDENTI WHERE EPASTS = :1
+                UNION
+                SELECT 'pasniedzējs' AS user_type, PASN_ID AS user_id FROM PASNIEDZEJI WHERE EPASTS = :1
+                UNION
+                SELECT 'administrators' AS user_type, ADMIN_ID AS user_id FROM ADMINISTRATORS WHERE EPASTS = :1
+            """, (email,))
+            user_data = cursor.fetchone()
+            
+            if user_data:
+                user_type = user_data[0]
+                user_id = user_data[1]
+
+                reset_token = generate_reset_token(user_id, user_type)
+                reset_link = url_for('reset_password_page', token=reset_token, _external=True)
+
+                # Message
+                msg = Message('Password Reset Request',
+                              recipients=[email],
+                              body=f"Please click the link below to reset your password:\n\n{reset_link}")
+                
+                mail.send(msg)
+                
+                return jsonify({"success": True, "message": "A password reset email has been sent to your email."})
+            else:
+                return jsonify({"success": False, "message": "Email not found."})
+        
+        finally:
+            cursor.close()
+            connection.close()
+    
+    return jsonify({"success": False, "message": "Failed to check email in the database."})
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

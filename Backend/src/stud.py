@@ -73,7 +73,7 @@ def get_papers():
 
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT RAKSTANR, NOSAUKUMS, STUD_ID FROM RAKSTI")
+        cursor.execute("SELECT RAKSTANR, FILE_NAME, STUD_ID FROM RAKSTI")
 
         papers = []
         for row in cursor:
@@ -133,6 +133,83 @@ def decline_paper(paper_id):
     finally:
         cursor.close()
         conn.close()
+
+
+@stud_bp.route('/choose-paper/<int:paper_id>', methods=['POST'])
+def choose_paper(paper_id):
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        # Get student_id from the request body
+        data = request.get_json()
+        student_id = data.get('student_id')
+
+        if not student_id:
+            return jsonify({"error": "Student ID is required"}), 400
+
+        cursor = conn.cursor()
+        cursor.execute("UPDATE RAKSTI SET STUD_ID = :student_id WHERE RAKSTANR = :paper_id", 
+                       {"student_id": student_id, "paper_id": paper_id})
+        conn.commit()
+        return jsonify({"success": True})
+    
+    except cx_Oracle.DatabaseError as e:
+        print("Database error:", e)  # Debugging
+        return jsonify({"error": "Database query failed"}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+@stud_bp.route('/edit_profile', methods=['PUT'])
+def edit_profile():
+    """Edit an existing profile in the database."""
+    data = request.json
+    print(data)
+    stud_id = data.get('stud-id')
+    name = data.get('name', '').strip()
+    surname = data.get('surname', '').strip()
+    username = data.get('username', '').strip()
+    email = data.get('email', '').strip()
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Cannot connect to the database"}), 500
+
+    try:
+        cursor = conn.cursor()
+
+        # Check if the student exists by ID
+        cursor.execute("SELECT COUNT(*) FROM STUDENTI WHERE STUD_ID = :1", (stud_id,))
+        exists = cursor.fetchone()[0]
+
+        if not exists:
+            return jsonify({"error": "Student not found"}), 404
+
+        # Update the student based on ID
+        cursor.execute(
+            """
+            UPDATE STUDENTI
+            SET VARDS = :1, UZVARDS = :2, LIETOTAJVARDS = :3, EPASTS = :4
+            WHERE STUD_ID = :5
+            """,
+            (name, surname, username, email, stud_id)
+        )
+        conn.commit()
+
+        return jsonify({"success": True, "message": "Student updated successfully!"})
+    except cx_Oracle.DatabaseError as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()    
+
+@stud_bp.route('/parole')
+def parole():
+        return render_template('new_password.html')   
 
 if __name__ == '__main__':
     stud_bp.run(debug=True)

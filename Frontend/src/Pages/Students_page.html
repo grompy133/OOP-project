@@ -400,7 +400,8 @@ th:first-child::after {
             <h2>Profile</h2>
             <input type="hidden" id="student-id" value="{{ students.id }}"> <!-- Hidden field for student_id -->
             <button onclick="editData(this)" class="register-btn">Edit data</button>
-            <button onclick="changePassword(this)" class="register-btn">Change password</button>
+            <button id="changePass" class="register-btn" onclick="changePassword(this)">Change password</button>
+            <input type="hidden" id="stud-id" value="{{ students.id }}" style="display: none;">
             <table>
                 <tr><td>Name:</td><td><input type="text" id="name" value="{{ students.name }}" readonly></td></tr>
                 <tr><td>Surname:</td><td><input type="text" id="surname" value="{{ students.surname }}" readonly></td></tr>
@@ -413,14 +414,17 @@ th:first-child::after {
     
     <script>
 
-// Edit Data
+/// Edit Data
 function editData(button) {
     const inputs = document.querySelectorAll('#profile input');
     let canEdit = false;
     let updatedData = {};
 
+    const studId = document.getElementById('stud-id').value;
+    updatedData['stud-id'] = studId;  // Add it to the updated data
+
     inputs.forEach(input => {
-        if (input.id !== "password") {  // Skip password field (if needed)
+        if (input.id !== "password" && input.id !== "stud-id") {  // Skip password and stud-id field
             if (input.readOnly) {
                 input.readOnly = false;  // Make the field editable
                 canEdit = true;  // Mark as editable
@@ -442,28 +446,33 @@ function editData(button) {
         // Send updated data to the backend
         sendUpdatedProfileData(updatedData);
     }
+
 }
 
 // Function to send the updated profile data to the backend
 function sendUpdatedProfileData(data) {
-    fetch('/update-profile', {
-        method: 'POST',  // Assuming the backend uses POST to handle the update
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),  // Convert the data to JSON
+    fetch('/students/edit_profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)  // Send the collected updated data
     })
-    .then(response => {
-        if (response.ok) {
+    .then(response => response.json())
+    .then(responseData => {
+        if (responseData.success) {
+            // Update the table or UI accordingly
+            document.getElementById("name").value = data.name;
+            document.getElementById("surname").value = data.surname;
+            document.getElementById("username").value = data.username;
+            document.getElementById("email").value = data.email;
+
             alert("Profile updated successfully!");
-            // Optionally, you can reload the data or refresh the page to show the updated data
         } else {
-            alert("Failed to update profile. Please try again.");
+            alert("Error updating student: " + responseData.error);
         }
     })
     .catch(error => {
-        console.error("Error updating profile:", error);
-        alert("An error occurred. Please try again.");
+        console.error("Error updating student:", error);
+        alert("An error occurred while updating the student.");
     });
 }
 
@@ -579,6 +588,41 @@ function declinePaper(paperId) {
             fetchPapers();
             showTab('papers');
         });
+
+        function choosePaper(paperId) {
+    const studentId = document.getElementById('student-id').value; // Get student_id from the hidden input
+    console.log("Student ID:", studentId); // Debugging
+    console.log("Paper ID:", paperId); // Debugging
+
+    fetch(`/students/choose-paper/${paperId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ student_id: studentId }), // Send student_id in the request body
+    })
+    .then(response => {
+        console.log("Response status:", response.status); // Debugging
+        return response.json();
+    })
+    .then(data => {
+        console.log("Response data:", data); // Debugging
+        if (data.success) {
+            alert("Paper chosen successfully!");
+            fetchPapers(); // Refresh the list of papers
+        } else {
+            alert("Failed to choose paper. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error("Error choosing paper:", error);
+        alert("An error occurred. Please try again.");
+    });
+}
+
+function changePassword() {
+    window.location.href = "/students/parole";  // Directly redirect to the page
+    }
 
     </script>
 </body>

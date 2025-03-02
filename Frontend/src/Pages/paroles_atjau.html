@@ -25,6 +25,7 @@ body {
 }
 
 .register-box {
+    position: relative; /* Ensure close button is positioned correctly */
     background: white;
     padding: 20px;
     border-radius: 10px;
@@ -79,51 +80,66 @@ input {
 .create-btn:hover {
     background-color: #0056b3;
 }
+
+.error-messages {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+}
+.success-message {
+    color: green;
+    font-size: 14px;
+    margin-top: 10px;
+}
 </style>
 <body>
     <div class="container">
         <div class="register-box">
             <button class="close-btn" onclick="closeForm()">✖</button>
-            <h2>Reset password</h2>
+            <h2>Reset Password</h2>
             <form id="resetForm">
                 <input type="email" id="email" name="email" placeholder="Enter your email" required>
                 <div id="errorMessages" class="error-messages"></div>
-                <button type="submit" class="create-btn">Reset</button>
+                <button type="button" class="create-btn" onclick="resetPassword()">Reset Password</button>
             </form>
         </div>
     </div>
 
     <script>
-        document.getElementById("resetForm").addEventListener("submit", function(event) {
-            event.preventDefault();
-
+        function resetPassword() {
             let email = document.getElementById("email").value;
 
+            // Validation
             if (!email) {
                 alert("Please enter your email!");
                 return;
             }
 
+            // Send data to the backend to initiate the password reset
             fetch('/send-reset-email', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({ email })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert("A password reset email has been sent to " + email);
+                    // Notify the user that the email has been sent
+                    alert("A password reset email has been sent to your email address.");
+                    // Clear the email field
                     document.getElementById("email").value = '';
                 } else {
-                    alert("Error: " + data.message);
+                    alert("Error sending reset email: " + data.message);
                 }
             })
             .catch(error => {
                 console.error("Error sending reset email:", error);
-                alert("An error occurred while sending the reset email.");
+                alert("An error occurred while sending the password reset email.");
             });
-        });
-
+        }
+        
         function closeForm() {
             document.querySelector(".register-box").style.display = "none";
         }

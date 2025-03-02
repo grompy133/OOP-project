@@ -506,3 +506,55 @@ def register_teams(seminar_nr):
     finally:
         cursor.close()
         conn.close()
+
+@pasn_bp.route('/edit_profile', methods=['PUT'])
+def edit_profile():
+    """Edit an existing profile in the database."""
+    data = request.json  
+    print(data)
+
+    # Extract and clean up data
+    pasn_id = data.get('pasn-id')
+    name = data.get('name', '').strip()
+    surname = data.get('surname', '').strip()
+    username = data.get('username', '').strip()
+    email = data.get('email', '').strip()
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Cannot connect to the database"}), 500
+
+    try:
+        cursor = conn.cursor()
+
+        # Check if the instructor exists by ID
+        cursor.execute("SELECT COUNT(*) FROM PASNIEDZEJI WHERE PASN_ID = :1", (pasn_id,))
+        exists = cursor.fetchone()[0]
+        print(exists)
+
+        if not exists:
+            return jsonify({"error": "Instructor not found"}), 404
+
+        # Update the instructor's data in the database
+        cursor.execute(
+            """
+            UPDATE PASNIEDZEJI
+            SET VARDS = :1, UZVARDS = :2, LIETOTAJVARDS = :3, EPASTS = :4
+            WHERE PASN_ID = :5
+            """,
+            (name, surname, username, email, pasn_id)
+        )
+        conn.commit()
+
+        return jsonify({"success": True, "message": "Instructor updated successfully!"})
+
+    except cx_Oracle.DatabaseError as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+@pasn_bp.route('/parole')
+def parole():
+        return render_template('new_password.html')

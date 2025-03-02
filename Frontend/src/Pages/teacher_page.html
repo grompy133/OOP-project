@@ -1,3 +1,6 @@
+
+
+
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -519,11 +522,12 @@
             </ul>
         </div>
 
-        <!-- Profile Tab -->
-        <div id="profile" class="tab-content">
+         <!-- Profile Tab -->
+         <div id="profile" class="tab-content">
             <h2>Profile</h2>
             <button onclick="editData(this)" class="add-btn">Edit data</button>
-            <button onclick="changePassword(this)" class="add-btn">Change password</button>
+            <button id="changePass" class="add-btn" onclick="changePassword(this)">Change password</button>
+            <input type="hidden" id="pasn-id" value="{{ pasniedzejs.id }}" style="display: none;">
             <table>
                 <tr><td>Name:</td><td><input type="text" id="name" value="{{ pasniedzejs.name }}" readonly></td></tr>
                 <tr><td>Surname:</td><td><input type="text" id="surname" value="{{ pasniedzejs.surname }}" readonly></td></tr>
@@ -1082,59 +1086,72 @@ function cancelDelete() {
                 headerCells[columnIndex].classList.add("desc");
             }
         }
-    // Edit Data
-    function editData(button) {
-    const inputs = document.querySelectorAll('#profile input');
-    let canEdit = false;
-    let updatedData = {};
+   // Edit Data function
+   function editData(button) {
+            const inputs = document.querySelectorAll('#profile input');
+            let canEdit = false;
+            let updatedData = {};
 
-    inputs.forEach(input => {
-        if (input.id !== "password") {  // Skip password field (if needed)
-            if (input.readOnly) {
-                input.readOnly = false;  // Make the field editable
-                canEdit = true;  // Mark as editable
+            // Get pasn-id (Instructor ID)
+            const pasnId = document.getElementById('pasn-id').value;
+            updatedData['pasn-id'] = pasnId;  // Add pasn-id to updated data
+
+            // Loop through the inputs and toggle readonly states
+            inputs.forEach(input => {
+                if (input.id !== "password" && input.id !== "pasn-id") {  // Skip password and pasn-id field
+                    if (input.readOnly) {
+                        input.readOnly = false;  // Make the field editable
+                        canEdit = true;  // Mark as editable
+                    } else {
+                        input.readOnly = true;  // Make the field readonly
+
+                        // Collect updated data (if it's not readonly)
+                        updatedData[input.id] = input.value;
+                    }
+                }
+            });
+
+            // Change the button text based on the state
+            if (canEdit) {
+                button.textContent = "Save data"; // If editable, prompt for saving
             } else {
-                input.readOnly = true;  // Make the field readonly
+                button.textContent = "Edit data"; // If all fields are readonly, prompt for editing
 
-                // Collect the updated data (if it's not readonly)
-                updatedData[input.id] = input.value;
+                // Send updated data to the backend
+                sendUpdatedProfileData(updatedData);  // Use updatedData, not data
             }
         }
-    });
 
-    // Change the button text accordingly
-    if (canEdit) {
-        button.textContent = "Save data"; // If editable, prompt for saving
-    } else {
-        button.textContent = "Edit data"; // If all fields are readonly, prompt for editing
+        // Function to send the updated profile data to the backend
+        function sendUpdatedProfileData(data) {
+            fetch('/pasniedzejs/edit_profile', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)  // Send the collected updated data
+            })
+            .then(response => response.json())
+            .then(responseData => {
+                if (responseData.success) {
+                    // Update the table or UI accordingly with the updated data
+                    document.getElementById("name").value = data.name;
+                    document.getElementById("surname").value = data.surname;
+                    document.getElementById("username").value = data.username;
+                    document.getElementById("email").value = data.email;
 
-        // Send updated data to the backend
-        sendUpdatedProfileData(updatedData);
-    }
-}
-
-// Function to send the updated profile data to the backend
-function sendUpdatedProfileData(data) {
-    fetch('/update-profile', {
-        method: 'POST',  // Assuming the backend uses POST to handle the update
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),  // Convert the data to JSON
-    })
-    .then(response => {
-        if (response.ok) {
-            alert("Profile updated successfully!");
-            // Optionally, you can reload the data or refresh the page to show the updated data
-        } else {
-            alert("Failed to update profile. Please try again.");
+                    alert("Profile updated successfully!");
+                } else {
+                    alert("Error updating profile: " + responseData.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error updating profile:", error);
+                alert("An error occurred while updating the profile.");
+            });
         }
-    })
-    .catch(error => {
-        console.error("Error updating profile:", error);
-        alert("An error occurred. Please try again.");
-    });
-}
+
+        function changePassword() {
+                window.location.href = "/pasniedzejs/parole";  // Directly redirect to the page
+        }
 
 function fetchPapers() {
     fetch('/pasniedzejs/get-papers')
