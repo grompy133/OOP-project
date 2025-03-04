@@ -4,28 +4,17 @@ import pandas as pd
 import io
 import random
 
-# Database connection parameters
-DB_USERNAME = 'ADMIN'
-DB_PASSWORD = 'msu8nTwIkf6isAR5qBmp'
-DB_DSN = "v9n3ba1erzl8nuba_high"
-DB_WALLET_PASSWORD = "dR3kQd8utf5jLyqRyeFx"
-#DB_WALLET_LOCATION = r"C:\\Users\\Boris\\Desktop\\Wallet_V9N3BA1ERZL8NUBA"
-DB_WALLET_LOCATION = r"D:\\SYSTEM_FOLDERS\\Downloads\\Wallet_V9N3BA1ERZL8NUBA"
-# Function to get database connection
+# Database connection details
+DB_USERNAME = 'C##sistema'
+DB_PASSWORD = '=dAb21Jm09'
+DB_DSN = 'localhost:1521/ORCL'
+
+# Function to connect to the database
 def get_db_connection():
     try:
-        connection = oracledb.connect(
-            config_dir=DB_WALLET_LOCATION,
-            user=DB_USERNAME,
-            password=DB_PASSWORD,
-            dsn=DB_DSN,
-            wallet_location=DB_WALLET_LOCATION,
-            wallet_password=DB_WALLET_PASSWORD
-        )
-        return connection
-    except oracledb.DatabaseError as e:
-        error, = e.args
-        print(f"Database connection error: {error.message}")
+        return cx_Oracle.connect(user=DB_USERNAME, password=DB_PASSWORD, dsn=DB_DSN)
+    except cx_Oracle.DatabaseError as e:
+        print("Database connection error:", e)
         return None
 
 pasn_bp = Blueprint('pasniedzejs', __name__)
@@ -558,3 +547,97 @@ def edit_profile():
 @pasn_bp.route('/parole')
 def parole():
         return render_template('new_password.html')
+
+
+@pasn_bp.route('/get-student-groups', methods=['GET'])
+def get_student_groups():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT G.GRUPA_ID, G.NOSAUKUMS, S.STUD_ID, S.VARDS, S.UZVARDS
+            FROM GRUPA G
+            LEFT JOIN STUDENTI S ON G.GRUPA_ID = S.GRUPA_ID
+            ORDER BY G.GRUPA_ID
+        """)
+        
+        groups_dict = {}
+        for row in cursor.fetchall():
+            group_id, group_name, student_id, student_name, student_surname = row
+            if group_id not in groups_dict:
+                groups_dict[group_id] = {
+                    "id": group_id,
+                    "name": group_name,
+                    "students": []
+                }
+            if student_id:
+                groups_dict[group_id]["students"].append({
+                    "id": student_id,
+                    "name": f"{student_name} {student_surname}"
+                })
+
+        result = list(groups_dict.values())
+        print("DEBUG API RESPONSE:", result)  # <--- Pievieno šo, lai redzētu API atbildi
+
+        return jsonify(result)
+
+    except cx_Oracle.DatabaseError as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
+
+@pasn_bp.route('/update-student-group', methods=['POST'])
+def update_student_group():
+    try:
+        data = request.get_json()
+        print("DEBUG: Received data:", data)
+
+        if not data:
+            return jsonify({"error": "No data received"}), 400
+
+        student_id = data.get('studentId')
+        new_group = data.get('newGroup')
+
+        if student_id is None or new_group is None:
+            return jsonify({"error": "studentId or newGroup missing"}), 400
+
+        try:
+            student_id = int(student_id)
+            new_group = int(new_group)
+        except ValueError:
+            return jsonify({"error": "studentId and newGroup must be numbers"}), 400
+
+        conn = get_db_connection()
+        if conn is None:
+            return jsonify({"error": "Database connection failed"}), 500
+
+        cursor = conn.cursor()
+        try:
+            print(f"DEBUG: Updating student {student_id} with group {new_group}")
+
+            cursor.execute("""
+                UPDATE STUDENTI
+                SET GRUPA_ID = :group_id
+                WHERE STUD_ID = :student_id
+            """, {"group_id": new_group, "student_id": student_id})
+
+            if cursor.rowcount == 0:
+                return jsonify({"error": "Student not found"}), 404
+
+            conn.commit()
+            return jsonify({"success": True, "message": "Student group updated successfully!"})
+        except cx_Oracle.DatabaseError as e:
+            conn.rollback()
+            print("DEBUG: Database error:", str(e))
+            return jsonify({"error": str(e)}), 500
+        finally:
+            cursor.close()
+            conn.close()
+    except Exception as e:
+        print("DEBUG: Unexpected error:", str(e))
+        return jsonify({"error": str(e)}), 500
