@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -441,7 +438,65 @@
         .register-btn:hover {
             background-color: #0056b3;
         }
+
+        #change-teams-modal {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 70%; /* Adjust width as needed */
+            max-width: 1400px; /* Adjust max-width as needed */
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center the modal content horizontally */
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            box-sizing: border-box;
+            max-height: 90vh;
+            overflow-y: auto; /* Enable vertical scrolling if needed */
+        }
+
+        #change-teams-modal h3 {
+            text-align: center; /* Center the title */
+            width: 100%; /* Ensure the title spans the full width */
+            margin-bottom: 20px; /* Add spacing below the title */
+        }
+
+        .teams-container {
+            display: flex;
+            gap: 10px;
+            justify-content: center; /* Center columns horizontally */
+            overflow-x: auto; /* Enable horizontal scrolling for columns */
+            padding: 10px;
+            width: 100%; /* Ensure the container spans the full width */
+        }
+
+        .team-column {
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+            padding: 10px;
+            min-width: 150px;
+            flex-shrink: 0; /* Prevent columns from shrinking */
+        }
+
+        .team-column h4 {
+            text-align: center; /* Center the team name */
+            margin: 0 0 10px; /* Add spacing below the team name */
+        }
+
+        .student-item {
+            padding: 5px;
+            background: #fff;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+            cursor: grab;
+        }
     </style>
+    
 </head>
 <body>  
     <div class="navbar">
@@ -554,7 +609,7 @@
             <button>Evaluation parameters</button>
             <button>Dates</button>
             <button>Download presentations</button>
-            <button>Export grades</button>
+            <button onclick="openChangeTeamsDialog()">Change teams</button>
             <button onclick="openCreateTeamsModal()">Create teams</button> </div>
             <div class="table-container">
             <table>
@@ -585,6 +640,13 @@
         <button class="register-btn" onclick="registerTeams()">Register</button>
     </div>
 
+    <!-- Change Teams Modal -->
+    <div id="change-teams-modal" class="modal-content" style="display: none;">
+        <span class="close-btn" onclick="closeChangeTeamsModal()">&times;</span>
+        <h3>Change Teams</h3>
+        <div id="teams-table-container" class="teams-container"></div>
+    </div>
+
     <!-- Confirmation Dialog -->
     <div id="confirmation-dialog" style="display: none;">
         <p>Are you sure you want to delete this student?</p>
@@ -593,6 +655,133 @@
     </div>
 
     <script>
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelector("button[onclick='openChangeTeamsDialog()']").addEventListener("click", openChangeTeamsDialog);
+});
+
+function openChangeTeamsDialog() {
+    fetch('/pasniedzejs/get-student-groups')
+    .then(response => response.json())
+    .then(groups => {
+        console.log("Received groups:", groups);
+        if (!groups || !Array.isArray(groups)) {
+            console.error('Invalid group data:', groups);
+            return;
+        }
+        generateTeamsTable(groups);
+        document.getElementById('change-teams-modal').style.display = 'block'; // Ensure modal is shown
+    })
+    .catch(error => console.error('Failed to fetch groups', error));
+}
+
+function generateTeamsTable(groups) {
+    const container = document.getElementById('teams-table-container');
+    if (!container) {
+        console.error('teams-table-container not found in DOM');
+        return;
+    }
+    container.innerHTML = '';  // Clear previous content
+
+    groups.forEach(group => {
+        const column = document.createElement('div');
+        column.classList.add('team-column');
+        column.setAttribute('data-group', group.id);  // Ensure group.id is a number
+
+        const header = document.createElement('h4');
+        header.innerText = group.name;
+        column.appendChild(header);
+
+        if (group.students && Array.isArray(group.students)) {
+            group.students.forEach(student => {
+                const studentDiv = document.createElement('div');
+                studentDiv.classList.add('student-item');
+                studentDiv.innerText = student.name;
+                studentDiv.setAttribute('draggable', 'true');
+                studentDiv.setAttribute('data-student-id', student.id);
+                studentDiv.setAttribute('data-current-group', group.id);  // Ensure group.id is a number
+
+                studentDiv.addEventListener('dragstart', handleDragStart);
+                column.appendChild(studentDiv);
+            });
+        }
+
+        column.addEventListener('dragover', handleDragOver);
+        column.addEventListener('drop', handleDrop);
+
+        container.appendChild(column);
+    });
+}
+
+function handleDragStart(e) {
+    e.dataTransfer.setData('student-id', e.target.getAttribute('data-student-id'));
+    e.dataTransfer.setData('from-group', e.target.getAttribute('data-current-group'));
+}
+
+function handleDragOver(e) {
+    e.preventDefault();  // Allow drop
+}
+
+function handleDrop(e) {
+    e.preventDefault();
+
+    const studentId = e.dataTransfer.getData('student-id');
+    const fromGroup = e.dataTransfer.getData('from-group');
+    const toGroup = e.currentTarget.getAttribute('data-group');
+
+    console.log("DEBUG: toGroup (before conversion):", toGroup);  // Log the raw value
+
+    const newGroup = Number(toGroup);
+
+    console.log("DEBUG: newGroup (after conversion):", newGroup);  // Log the converted value
+
+    if (isNaN(newGroup)) {
+        console.error("❌ ERROR: newGroup nav skaitlis!", { toGroup, newGroup });
+        return;
+    }
+
+    if (fromGroup !== toGroup) {
+        const studentDiv = document.querySelector(`.student-item[data-student-id='${studentId}']`);
+        studentDiv.setAttribute('data-current-group', toGroup);
+        e.currentTarget.appendChild(studentDiv);
+
+        updateStudentGroup(studentId, newGroup);
+    }
+}
+
+function updateStudentGroup(studentId, newGroup) {
+    // Convert studentId and newGroup to numbers
+    studentId = Number(studentId);
+    newGroup = Number(newGroup);
+
+    // Check if the conversion was successful
+    if (isNaN(studentId) || isNaN(newGroup)) {
+        console.error("❌ ERROR: studentId vai newGroup nav skaitlis!", { studentId, newGroup });
+        return;
+    }
+
+    console.log("✅ DEBUG: Nosūta studentId:", studentId, " uz grupu:", newGroup);
+
+    fetch('/pasniedzejs/update-student-group', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentId, newGroup }) 
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("✅ DEBUG: Servera atbilde:", data);
+        if (!data.success) {
+            console.error("❌ Error updating student:", data.error);
+        }
+    })
+    .catch(error => console.error('❌ Failed to update student group', error));
+}
+
+
+function closeChangeTeamsModal() {
+    document.getElementById('change-teams-modal').style.display = 'none';
+}
+
 
     function openCreateTeamsModal() {
         document.getElementById("create-teams-modal").style.display = "flex";
