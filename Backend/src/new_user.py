@@ -1,14 +1,21 @@
-from flask import Flask, request, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, url_for
 import hashlib
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-import secrets
-import string
-import oracledb
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer, BadSignature
+import os
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+
+# Mail configuration
+app.config['MAIL_SERVER'] = 'mail.inbox.lv'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USERNAME'] = 'vangogilicock123@inbox.lv'  # Your email
+app.config['MAIL_PASSWORD'] = '7P92BrGysP'  # Your password
+app.config['MAIL_DEFAULT_SENDER'] = 'vangogilicock123@inbox.lv'
+mail = Mail(app)
 
 # Database connection parameters
 DB_USERNAME = 'ADMIN'
@@ -40,106 +47,108 @@ def hash_password(password):
 
 # E-pasta sūtīšanas funkcija
 def send_email(to_email, subject, body):
-    msg = MIMEMultipart()
-    msg['From'] = SENDER_EMAIL
-    msg['To'] = to_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(body, 'html'))
+    msg = Message(subject, recipients=[to_email])
+    msg.html = body
 
     try:
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SENDER_EMAIL, SENDER_PASSWORD)
-            server.sendmail(SENDER_EMAIL, to_email, msg.as_string())
-        print("E-pasts veiksmīgi nosūtīts!")
+        mail.send(msg)
     except Exception as e:
         print(f"Kļūda, sūtot e-pastu: {e}")
 
-# Unikālas saites ģenerēšana
-def generate_activation_link(username, email):
-    token = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(32))
-    activation_link = f"http://yourserver.com/activate?username={username}&email={email}&token={token}"
-    return activation_link
-
-# E-pasta satura sagatavošana
-def prepare_email_content(username, email):
-    activation_link = generate_activation_link(username, email)
-    subject = "Uzaicinājums lietot sistēmu"
-    body = f"""
-    <html>
-        <body>
-            <h2>Sveicināti, {username}!</h2>
-            <p>Jūs esat uzaicināts lietot mūsu sistēmu. Lai sāktu, lūdzu, noklikšķiniet uz šīs saites:</p>
-            <p><a href="{activation_link}">{activation_link}</a></p>
-            <p>Ja jums ir kādi jautājumi, lūdzu, sazinieties ar mums.</p>
-            <p>Ar cieņu,<br>Jūsu sistēmas administrācija</p>
-        </body>
-    </html>
-    """
-    return subject, body
 
 # Flask maršrutētāji
 @app.route('/')
 def index():
     return render_template('Register_new_admin.html')
 
-@app.route('/styles.css')
-def styles():
-    return send_from_directory(app.static_folder, 'styles_register.css')
+@app.route('/tologin')
+def toLogin():
+    return render_template('login.html')
 
 @app.route('/register', methods=['POST'])
 def register():
-    # Iegūstam datus no formas
-    username = request.form.get('username')
-    email = request.form.get('email')
-    password = request.form.get('password')
-
-    # Pārbaudām, vai visi lauki ir aizpildīti
-    if not username or not email or not password:
-        return "<p style='color:red;'>Visi lauki ir obligāti!</p> <a href='/'>Atgriezties</a>"
-
-    # Šifrējam paroli pirms saglabāšanas datubāzē
-    hashed_password = hash_password(password)
-
-    # Savienojamies ar datu bāzi
-    connection = get_db_connection()
-    if not connection:
-        return "<p style='color:red;'>Neizdevās savienoties ar datu bāzi.</p> <a href='/'>Atgriezties</a>"
-
     try:
-        with connection.cursor() as cursor:
-            # Izveidojam SQL vaicājumu ar parametriem
+        # Get data from the request
+        data = request.get_json()
+
+        # Extract values
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+
+        # Validate data
+        if not password or not username or not email:
+            return jsonify({'Can not get from the request username/email/password'}), 400
+
+        # Hash the password before saving
+        hashed_password = hash_password(password)
+
+        # Connect to the database
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'errors': ["Neizdevās savienoties ar datu bāzi."]}), 500
+
+        try:
+            cursor = connection.cursor()
             sql = """
                 INSERT INTO ADMINISTRATORS (LIETOTAJVARDS, EPASTS, PAROLE)
                 VALUES (:1, :2, :3)
             """
-            # Izpildām vaicājumu
             cursor.execute(sql, [username, email, hashed_password])
             connection.commit()
 
-            # Nosūtām e-pastu ar uzaicinājumu
-            subject, body = prepare_email_content(username, email)
+
+            # Generate activation link
+            login_link = url_for('toLogin', _external=True)
+
+            # Prepare the email content
+            subject = "Uzaicinājums lietot sistēmu"
+            body = f"""
+                Sveicināti, {email}!<br><br>
+                Your credentials are: username={username} and password={password}
+                Jūs esat uzaicināts lietot mūsu sistēmu. <br>
+                Lai sāktu, lūdzu, noklikšķiniet uz šīs saites: <a href="{login_link}">{login_link}</a>.<br><br>
+                Ja jums ir kādi jautājumi, lūdzu, sazinieties ar mums.
+                """
+
+            # Send invitation email
             send_email(email, subject, body)
 
-            # Atgriežam veiksmīgu ziņojumu
-            return f"<script>alert('Administrators \"{username}\" veiksmīgi reģistrēts! E-pasts ar uzaicinājumu nosūtīts uz {email}.'); window.location.href='/';</script>"
-    except cx_Oracle.DatabaseError as e:
-        # Ja rodas kļūda, atgriežam kļūdas ziņojumu
-        return f"<p style='color:red;'>Kļūda: {str(e)}</p> <a href='/'>Atgriezties</a>"
-    finally:
-        # Aizveram savienojumu
-        connection.close()
+            return jsonify({'message': f"Administrators {username} veiksmīgi reģistrēts! E-pasts ar uzaicinājumu nosūtīts uz {email}."}), 200
+
+        except cx_Oracle.DatabaseError as e:
+            return jsonify({'errors': [f"Kļūda: {str(e)}"]}), 500
+
+        finally:
+            connection.close()
+
+    except Exception as e:
+        return jsonify({'errors': [str(e)]}), 500
+
 
 @app.route('/activate')
 def activate():
-    username = request.args.get('username')
-    email = request.args.get('email')
     token = request.args.get('token')
 
-    # Pārbaudiet tokenu un veiciet nepieciešamās darbības
-    # Piemēram, atzīmējiet lietotāju kā aktivizētu datu bāzē
+    if not token:
+        return "<p>Token nav atrasts!</p>", 400
 
-    return f"<p>Lietotājs {username} ar e-pastu {email} veiksmīgi aktivizēts!</p>"
+    try:
+        # Decrypt the token
+        serializer = URLSafeTimedSerializer(app.secret_key)
+        user_info = serializer.loads(token, salt='email-activation-salt', max_age=3600)  # Max age of 1 hour
+        username, email = user_info
+
+        # Perform the necessary actions, like updating the user as active in your DB
+        # For example, update the user status in the database to "active"
+
+        return f"<p>Lietotājs {username} ar e-pastu {email} veiksmīgi aktivizēts!</p>"
+
+    except BadSignature:
+        return "<p>Nepareizs vai beidzies token!</p>", 400
+    except Exception as e:
+        return f"<p>Kļūda: {str(e)}</p>", 500
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
