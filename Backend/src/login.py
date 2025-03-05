@@ -1,6 +1,5 @@
 import hashlib # lai varētu paroli hash
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
-import cx_Oracle
 import oracledb
 import os
 from flask_mail import Mail, Message
@@ -117,7 +116,7 @@ class User:
                     SELECT STUD_ID, VARDS, UZVARDS, LIETOTAJVARDS, EPASTS, PAROLE, 'students' AS user_type 
                     FROM STUDENTI 
                     WHERE EPASTS = :1 OR LIETOTAJVARDS = :1
-                """, (email_or_username,))
+                """, (email_or_username,)*6)
                 
                 user_data = cursor.fetchone() #iegūst pirmo atrasto lietotāju
                 if user_data:

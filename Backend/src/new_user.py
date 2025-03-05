@@ -1,5 +1,4 @@
 from flask import Flask, request, render_template, send_from_directory
-import cx_Oracle
 import hashlib
 import smtplib
 from email.mime.text import MIMEText

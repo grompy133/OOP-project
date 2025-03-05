@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, jsonify, request, send_file
-import cx_Oracle
 import pandas as pd
 import io
 import random
+import oracledb
 
 # Database connection parameters
 DB_USERNAME = 'ADMIN'

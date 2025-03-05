@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, jsonify, request
-import cx_Oracle
 import oracledb
 
 # Database connection parameters

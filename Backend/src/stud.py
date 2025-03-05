@@ -1,5 +1,4 @@
 from flask import Flask, jsonify, Blueprint, render_template, request
-import cx_Oracle
 from flask import session
 import oracledb
 
@@ -136,7 +135,7 @@ def decline_paper(paper_id):
 
 
 @stud_bp.route('/choose-paper/<int:paper_id>', methods=['POST'])
-def choose_paper(paper_id):
+def _paper(paper_id):
     conn = get_db_connection()
     if conn is None:
         return jsonify({"error": "Database connection failed"}), 500

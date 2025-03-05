@@ -589,36 +589,48 @@ function declinePaper(paperId) {
             showTab('papers');
         });
 
-        function choosePaper(paperId) {
-    const studentId = document.getElementById('student-id').value; // Get student_id from the hidden input
-    console.log("Student ID:", studentId); // Debugging
-    console.log("Paper ID:", paperId); // Debugging
+        let chosenPapers = 0; // Skaits izvēlētajiem rakstiem
+
+function choosePaper(paperId) {
+    const studentId = document.getElementById('student-id').value; // Iegūst student_id
+
+    if (!studentId) {
+        alert("Student ID nav atrasts! Pārliecinies, ka esi autorizējies.");
+        return;
+    }
+
+    if (chosenPapers >= 3) {
+        alert("Tu nevari izvēlēties vairāk par 3 rakstiem!");
+        return;
+    }
+
+    console.log(`Student ${studentId} mēģina izvēlēties rakstu ${paperId}`);
 
     fetch(`/students/choose-paper/${paperId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ student_id: studentId }), // Send student_id in the request body
+        body: JSON.stringify({ student_id: studentId }), 
     })
-    .then(response => {
-        console.log("Response status:", response.status); // Debugging
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        console.log("Response data:", data); // Debugging
+        console.log("Atbilde no servera:", data); 
+
         if (data.success) {
-            alert("Paper chosen successfully!");
-            fetchPapers(); // Refresh the list of papers
+            alert("Raksts veiksmīgi izvēlēts!");
+            chosenPapers++;  // Palielinām izvēlēto rakstu skaitu
+            fetchPapers();   // Atjauninām sarakstu
         } else {
-            alert("Failed to choose paper. Please try again.");
+            alert(data.error || "Neizdevās izvēlēties rakstu. Mēģini vēlreiz.");
         }
     })
     .catch(error => {
-        console.error("Error choosing paper:", error);
-        alert("An error occurred. Please try again.");
+        console.error("Kļūda izvēloties rakstu:", error);
+        alert("Radās kļūda. Mēģini vēlreiz.");
     });
 }
+
 
 function changePassword() {
     window.location.href = "/students/parole";  // Directly redirect to the page
