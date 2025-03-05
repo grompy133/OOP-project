@@ -275,7 +275,7 @@ def update_password():
         if 'user_id' not in session:
             return jsonify({"success": False, "message": "User not authenticated"}), 401
 
-    hashed_password = User.hash_password(new_password)
+    hashed_password = hash_password(new_password)
     table_map = {
         'students': 'STUDENTI',
         'pasniedzējs': 'PASNIEDZEJI',
@@ -302,7 +302,7 @@ def update_password():
         cursor = connection.cursor()
         
         query = f"UPDATE {table_name} SET PAROLE = :1 WHERE {id_column} = :2"
-        print(query)
+        print(query + '. Password: ' + str(new_password) + ' . User ID: ' + str(user_id) + ' . User type: ' + str(user_type))
         cursor.execute(query, (hashed_password, user_id))
         connection.commit()
         
@@ -327,6 +327,76 @@ def logout():
 @app.route('/parole')
 def parole():
         return render_template('paroles_atjau.html')
+    # To enter register new admin page, add to the link http://127.0.0.1:5000/register_new_admin
+@app.route('/register_new_admin')
+def register_new_admin():
+    return render_template('Register_new_admin.html')
+
+@app.route('/register', methods=['POST'])
+def register():
+    try:
+        # Get data from the request
+        data = request.get_json()
+
+        # Extract values
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+
+        # Validate data
+        if not password or not username or not email:
+            return jsonify({'Can not get from the request username/email/password'}), 400
+
+        # Hash the password before saving
+        hashed_password = hash_password(password)
+
+        # Connect to the database
+        connection = get_db_connection()
+        if not connection:
+            return jsonify({'errors': ["Neizdevās savienoties ar datu bāzi."]}), 500
+
+        try:
+            cursor = connection.cursor()
+            sql = """
+                INSERT INTO ADMINISTRATORS (LIETOTAJVARDS, EPASTS, PAROLE)
+                VALUES (:1, :2, :3)
+            """
+            cursor.execute(sql, [username, email, hashed_password])
+            connection.commit()
+
+            select_created_admin = """
+                SELECT ADMIN_ID FROM ADMINISTRATORS WHERE EPASTS=:1 AND LIETOTAJVARDS=:2
+            """
+            cursor.execute(select_created_admin, [email, username])
+
+            user_id= cursor.fetchone()[0]
+
+            reset_token = generate_reset_token(user_id, 'administrators')
+            reset_link = url_for('reset_password_page', token=reset_token, _external=True)
+
+            # Prepare the email content
+            subject = "Uzaicinājums lietot sistēmu"
+            body = f"""
+                Sveicināti, {username}!<br><br>
+                Jūs esat uzaicināts lietot mūsu sistēmu. <br>
+                Lai sāktu, lūdzu, noklikšķiniet uz šīs saites: <a href="{reset_link}">{reset_link}</a>.<br><br>
+                Ja jums ir kādi jautājumi, lūdzu, sazinieties ar mums.
+                """
+
+            # Send invitation email
+            send_email(email, subject, body)
+
+            return jsonify({'message': f"Administrators {username} veiksmīgi reģistrēts! E-pasts ar uzaicinājumu nosūtīts uz {email}."}), 200
+
+        except cx_Oracle.DatabaseError as e:
+            return jsonify({'errors': [f"Kļūda: {str(e)}"]}), 500
+
+        finally:
+            connection.close()
+
+    except Exception as e:
+        return jsonify({'errors': [str(e)]}), 500
+    
 
 @app.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password_page(token):
@@ -357,12 +427,10 @@ def send_reset_email():
                 reset_token = generate_reset_token(user_id, user_type)
                 reset_link = url_for('reset_password_page', token=reset_token, _external=True)
 
-                # Message
-                msg = Message('Password Reset Request',
-                              recipients=[email],
-                              body=f"Please click the link below to reset your password:\n\n{reset_link}")
+                subject = 'Password Reset Request'
+                body=f"Please click the link below to reset your password:\n\n{reset_link}"
                 
-                mail.send(msg)
+                send_email(email, subject, body)
                 
                 return jsonify({"success": True, "message": "A password reset email has been sent to your email."})
             else:
@@ -373,6 +441,7 @@ def send_reset_email():
             connection.close()
     
     return jsonify({"success": False, "message": "Failed to check email in the database."})
+
 
 
 
