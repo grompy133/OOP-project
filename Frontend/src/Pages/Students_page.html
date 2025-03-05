@@ -571,7 +571,8 @@ function declinePaper(paperId) {
     .then(response => {
         if (response.ok) {
             alert("Paper declined successfully!");
-            fetchPapers();  // Refresh the list of papers
+            chosenPapers--; // Samazina izvēlēto rakstu skaitu
+            fetchPapers();  // Atsvaidzina sarakstu
         } else {
             alert("Failed to decline paper. Please try again.");
         }
@@ -594,17 +595,13 @@ function declinePaper(paperId) {
 function choosePaper(paperId) {
     const studentId = document.getElementById('student-id').value; // Iegūst student_id
 
-    if (!studentId) {
-        alert("Student ID nav atrasts! Pārliecinies, ka esi autorizējies.");
-        return;
-    }
 
     if (chosenPapers >= 3) {
-        alert("Tu nevari izvēlēties vairāk par 3 rakstiem!");
+        alert("You can't choose more than 3 papers!");
         return;
     }
 
-    console.log(`Student ${studentId} mēģina izvēlēties rakstu ${paperId}`);
+    console.log(`Student ${studentId} trying to choose paper ${paperId}`);
 
     fetch(`/students/choose-paper/${paperId}`, {
         method: 'POST',
@@ -615,19 +612,19 @@ function choosePaper(paperId) {
     })
     .then(response => response.json())
     .then(data => {
-        console.log("Atbilde no servera:", data); 
+        console.log("Response data:", data); 
 
         if (data.success) {
-            alert("Raksts veiksmīgi izvēlēts!");
+            alert("Paper chosen successfully!");
             chosenPapers++;  // Palielinām izvēlēto rakstu skaitu
             fetchPapers();   // Atjauninām sarakstu
         } else {
-            alert(data.error || "Neizdevās izvēlēties rakstu. Mēģini vēlreiz.");
+            alert(data.error || "Failed to choose paper. Please try again.");
         }
     })
     .catch(error => {
-        console.error("Kļūda izvēloties rakstu:", error);
-        alert("Radās kļūda. Mēģini vēlreiz.");
+        console.error("Error choosing paper:", error);
+        alert("An error occured. Please try again.");
     });
 }
 
