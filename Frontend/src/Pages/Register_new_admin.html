@@ -86,19 +86,13 @@
 <body>
     <div class="container">
         <div class="register-box">
-            <!-- Close Button (X) -->
             <button class="close-btn" onclick="closeForm()">✖</button>
-
             <h2>Register New User</h2>
-            <form id="registerForm" onsubmit="return validateForm(event)">
+            <form id="registerForm" onsubmit="return handleSubmit(event)">
                 <input type="email" id="email" placeholder="Email" required>
                 <input type="text" id="username" placeholder="Username" required>
                 <input type="password" id="password" placeholder="Password" required>
-
-                <!-- Error message container -->
                 <div id="errorMessages" class="error-messages"></div>
-
-                <!-- Create Button -->
                 <button type="submit" class="create-btn">Create</button>
             </form>
         </div>
@@ -108,45 +102,89 @@
         function closeForm() {
             document.querySelector(".register-box").style.display = "none";
         }
-
-        // Form Validation Function
-        function validateForm(event) {
-            event.preventDefault(); // Prevent form submission
+    
+        // Handle the form submission with fetch
+        async function handleSubmit(event) {
+            event.preventDefault(); // Prevent default form submission
+    
+            const email = document.getElementById("email").value;
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+    
             let valid = true;
             let errorMessages = [];
-            
-            // Get the input values
-            let email = document.getElementById("email").value;
-            let username = document.getElementById("username").value;
-            
-            // Clear previous error messages
-            document.getElementById("errorMessages").innerHTML = "";
-
+    
             // Validate username
             if (username.length < 5) {
                 valid = false;
                 errorMessages.push("Lietotājvārda garumam jābūt vismaz 5 simboliem.");
             }
-
+            
+            if (!/^[a-zA-Z0-9]+$/.test(username)) {
+                valid = false;
+                errorMessages.push("Lietotājvārds var saturēt tikai burtiem un cipariem.");
+            }
+    
             // Validate email
-            let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA0-9.-]+\.[a-zA-Z]{2,6}$/;
             if (!emailPattern.test(email)) {
                 valid = false;
                 errorMessages.push("Lūdzu ievadiet pareizu epastu.");
             }
-
-            // Display error messages if any
-            if (!valid) {
-                let errorMessageHTML = "<ul>";
-                errorMessages.forEach(function(msg) {
-                    errorMessageHTML += "<li>" + msg + "</li>";
-                });
-                errorMessageHTML += "</ul>";
-                document.getElementById("errorMessages").innerHTML = errorMessageHTML;
+    
+            // Validate password
+            if (password.length < 6) {
+                valid = false;
+                errorMessages.push("Parolei jābūt vismaz 6 simbolus garai.");
             }
-
-            return valid; // If valid is true, the form will be submitted, otherwise it won't
+            
+    
+            // If validation fails, display errors and return
+            if (!valid) {
+                displayErrors(errorMessages);
+                return; // Stop the form submission
+            }
+    
+            // Prepare the data to be sent
+            const data = {
+                email: email,
+                username: username,
+                password: password
+            };
+    
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+    
+                const result = await response.json();
+                
+                if (response.ok) {
+                    alert(result.message); // Show success message
+                    window.location.href = '/'; // Redirect back to the main page
+                } else {
+                    displayErrors(result.errors); // Show error messages from server
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+    
+        // Function to display error messages
+        function displayErrors(errors) {
+            const errorMessagesContainer = document.getElementById("errorMessages");
+            errorMessagesContainer.innerHTML = "<ul>";
+            errors.forEach(error => {
+                errorMessagesContainer.innerHTML += `<li>${error}</li>`;
+            });
+            errorMessagesContainer.innerHTML += "</ul>";
         }
     </script>
+    
 </body>
 </html>
