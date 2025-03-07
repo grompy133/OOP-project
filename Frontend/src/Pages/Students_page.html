@@ -71,6 +71,108 @@
 #instructions {
     display: block; /* Initially show instructions sheet */
 }
+#instructions {
+    display: block; /* Initially show instructions sheet */
+}
+
+#seminars-table th:nth-child(1) {
+    width: 20%; /* Уже для "Seminar name" */
+}
+
+#seminars-table th:nth-child(2) {
+    width: 20%; /* Шире для "Time" */
+}
+
+#seminars-table th:nth-child(3) {
+    width: 25%; /* Например, "Place" */
+}
+
+#seminars-table th:nth-child(4) {
+    width: 35%; /* "Presentation" */
+}
+
+        /* Add Seminar Popup */
+        #add-seminar-popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+        }
+
+        #add-seminar-popup input {
+            margin-bottom: 15px; /* Add space below inputs */
+            width: 80%; /* Ensure inputs and label take full width */
+            padding: 10px; /* Increase padding for better readability */
+            font-size: 16px;
+        }
+
+        #add-seminar-popup button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        /* Seminar Popup */
+        #seminar-popup {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            width: 80%;  /* Maini atbilstoši nepieciešamajam platumam */
+            max-width: 1000px;  /* Maksimālais platums */
+            max-height: 80vh;
+            overflow: auto;  /* Ja saturs pārsniedz izmēru, parādīsies rullītis */
+            margin: auto;
+            text-align: center;
+        }
+
+        #seminar-popup table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Tabulas konteiners, kas ļaus ritināt tabulas saturu */
+        #seminar-popup .table-container {
+            max-height: 300px;  /* Piemērs, regulējams atkarībā no vajadzībām */
+            overflow-y: auto;  /* Parādīs vertikālo rullīti */
+        }
+
+		.seminar-popup-buttons {
+            display: flex;
+            justify-content: space-evenly;
+            margin-bottom: 20px;
+        }
+
+        .seminar-popup-buttons button {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
 
 .add-btn {
     background-color: #007bff;
@@ -364,11 +466,15 @@ th:first-child::after {
 }
 </style>
 <body>
+	
     <div class="container">
         <!-- Tabs for Papers and Profile -->
         <div class="tabs">
             <div class="tab active" id="papers-tab" onclick="showTab('papers')">
                 <h3>PAPERS</h3>
+			</div>
+			<div class="tab" id="seminars-tab" onclick="showTab('seminars')">
+				<h3>SEMINARS</h3>
             </div>
             <div class="tab" id="profile-tab" onclick="showTab('profile')">
                 <h3>PROFILE</h3>
@@ -389,6 +495,26 @@ th:first-child::after {
                         </tr>
                     </thead>
                     <tbody id="papers-table-body">
+                        <!-- Papers will be dynamically inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+		<!-- SEMINARS Tab Content -->
+        <div id="seminars" class="sheet-content" style="display: none;">
+            <h2>Seminars</h2>
+            <div class="table-container">
+                <table id="seminars-table">
+                    <thead>
+                        <tr>
+                            <th>Seminar name</th>
+                            <th>Time</th>
+                            <th>Place</th>
+							<th>Presentation</th>
+                        </tr>
+                    </thead>
+                    <tbody id="seminars-table-body">
                         <!-- Papers will be dynamically inserted here -->
                     </tbody>
                 </table>
@@ -478,9 +604,11 @@ function sendUpdatedProfileData(data) {
 
 
         function showTab(tabName) {
-            document.getElementById("papers").style.display = "none";
+            document.getElementById("papers").style.display = "none"; 
+			document.getElementById("seminars").style.display = "none";
             document.getElementById("profile").style.display = "none";
             document.getElementById("papers-tab").classList.remove("active");
+			document.getElementById("seminars-tab").classList.remove("active");
             document.getElementById("profile-tab").classList.remove("active");
 
             document.getElementById(tabName).style.display = "block";
@@ -497,15 +625,15 @@ function sendUpdatedProfileData(data) {
         }
 
         function fetchPapers() {
-    fetch('/students/get-papers')
-        .then(response => response.json())
-        .then(data => {
-            if (data.papers) {
-                renderPapers(data.papers);
-            }
-        })
-        .catch(error => console.error("Error fetching papers:", error));
-}
+    		fetch('/students/get-papers')
+        	.then(response => response.json())
+        	.then(data => {
+            	if (data.papers) {
+                	renderPapers(data.papers);
+            	}
+        	})
+        	.catch(error => console.error("Error fetching papers:", error));
+		}
 
 function renderPapers(papers) {
     const tbody = document.getElementById("papers-table-body");
@@ -560,7 +688,6 @@ function renderPapers(papers) {
     });
 }
 
-
 function declinePaper(paperId) {
     fetch(`/students/decline-paper/${paperId}`, {
         method: 'POST',
@@ -582,13 +709,72 @@ function declinePaper(paperId) {
         alert("An error occurred. Please try again.");
     });
 }
-
-
         document.addEventListener("DOMContentLoaded", () => {
             console.log("Page loaded, starting data load...");  // Debugging message
             fetchPapers();
             showTab('papers');
         });
+
+
+		function choosePaper(paperId) {
+			const studentId = document.getElementById('student-id').value; // Get student_id from the hidden input
+			console.log("Student ID:", studentId); // Debugging
+			console.log("Paper ID:", paperId); // Debugging
+		
+			fetch('/students/choose-paper/${paperId}', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ student_id: studentId }), // Send student_id in the request body
+			})
+			.then(response => {
+				console.log("Response status:", response.status); // Debugging
+				return response.json();
+			})
+			.then(data => {
+				console.log("Response data:", data); // Debugging
+				if (data.success) {
+					alert("Paper chosen successfully!");
+					fetchPapers(); // Refresh the list of papers
+				} else {
+					alert("Failed to choose paper. Please try again.");
+				}
+			})
+			.catch(error => {
+				console.error("Error choosing paper:", error);
+				alert("An error occurred. Please try again.");
+			});
+		}
+
+		function fetchSeminars() {
+			fetch('/students/get-seminars')
+				.then(response => response.json())
+				.then(data => {
+					if (data.seminars) {
+						renderSeminars(data.seminars);
+					}
+				})
+				.catch(error => console.error("Error fetching seminars:", error));
+		}
+		
+		function renderSeminars(seminars) {
+			const tbody = document.getElementById("seminars-table-body");
+			tbody.innerHTML = "";  // Очищаем таблицу перед добавлением новых данных
+		
+			seminars.forEach((seminar, index) => {
+				const row = document.createElement("tr");
+		
+				row.innerHTML = `
+					<td>${seminar.name}</td>
+					<td>${seminar.time}</td>
+					<td>${seminar.place}</td>
+					<td>${seminar.presentation}</td>
+				`;
+		
+				tbody.appendChild(row);
+			});
+		}
 
         let chosenPapers = 0; // Skaits izvēlētajiem rakstiem
 

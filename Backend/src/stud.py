@@ -7,8 +7,8 @@ DB_USERNAME = 'ADMIN'
 DB_PASSWORD = 'msu8nTwIkf6isAR5qBmp'
 DB_DSN = "v9n3ba1erzl8nuba_high"
 DB_WALLET_PASSWORD = "dR3kQd8utf5jLyqRyeFx"
-#DB_WALLET_LOCATION = r"C:\\Users\\Boris\\Desktop\\Wallet_V9N3BA1ERZL8NUBA"
-DB_WALLET_LOCATION = r"D:\\SYSTEM_FOLDERS\\Downloads\\Wallet_V9N3BA1ERZL8NUBA"
+DB_WALLET_LOCATION = r"C:\\Users\\Boris\\Desktop\\Wallet_V9N3BA1ERZL8NUBA"
+
 # Function to get database connection
 def get_db_connection():
     try:
@@ -209,6 +209,35 @@ def edit_profile():
 @stud_bp.route('/parole')
 def parole():
         return render_template('new_password.html')   
+    
+    #Raksta izvēlēšana
+@stud_bp.route('/choose-paper/<int:paper_id>', methods=['POST'])
+def choose_paper(paper_id):
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        # Get student_id from the request body
+        data = request.get_json()
+        student_id = data.get('student_id')
+
+        if not student_id:
+            return jsonify({"error": "Student ID is required"}), 400
+
+        cursor = conn.cursor()
+        cursor.execute("UPDATE RAKSTI SET STUD_ID = :student_id WHERE RAKSTANR = :paper_id", 
+                       {"student_id": student_id, "paper_id": paper_id})
+        conn.commit()
+        return jsonify({"success": True})
+    
+    except cx_Oracle.DatabaseError as e:
+        print("Database error:", e)  # Debugging
+        return jsonify({"error": "Database query failed"}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()
 
 if __name__ == '__main__':
     stud_bp.run(debug=True)
