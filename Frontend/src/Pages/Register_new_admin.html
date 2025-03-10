@@ -110,38 +110,44 @@
             const email = document.getElementById("email").value;
             const username = document.getElementById("username").value;
             const password = document.getElementById("password").value;
+            let errorMessages = document.getElementById("errorMessages");
+
+            // Clear previous errors
+            errorMessages.innerHTML = "";
     
             let valid = true;
-            let errorMessages = [];
     
             // Validate username
             if (username.length < 5) {
                 valid = false;
-                errorMessages.push("Lietotājvārda garumam jābūt vismaz 5 simboliem.");
+                errorMessages.innerHTML += "<p style='color: red; font-size: 14px;'>Username must be at least 5 symbols long.</p>";
             }
             
             if (!/^[a-zA-Z0-9]+$/.test(username)) {
                 valid = false;
-                errorMessages.push("Lietotājvārds var saturēt tikai burtiem un cipariem.");
+                errorMessages.innerHTML += "<p style='color: red; font-size: 14px;'>Username must contain only letters and numbers.</p>";
             }
-    
+
             // Validate email
-            let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA0-9.-]+\.[a-zA-Z]{2,6}$/;
+            let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
             if (!emailPattern.test(email)) {
                 valid = false;
-                errorMessages.push("Lūdzu ievadiet pareizu epastu.");
+                errorMessages.innerHTML += "<p style='color: red; font-size: 14px;'>Wrong email format.</p>";
             }
-    
+
             // Validate password
             if (password.length < 6) {
                 valid = false;
-                errorMessages.push("Parolei jābūt vismaz 6 simbolus garai.");
+                errorMessages.innerHTML += "<p style='color: red; font-size: 14px;'>Password must be at least 6 characters long.</p>";
             }
-            
-    
+
+            if (!/\d/.test(password)) {
+                valid = false;
+                errorMessages.innerHTML += "<p style='color: red; font-size: 14px;'>Password must contain at least one number.</p>";
+            }
+
             // If validation fails, display errors and return
             if (!valid) {
-                displayErrors(errorMessages);
                 return; // Stop the form submission
             }
     
@@ -167,7 +173,12 @@
                     alert(result.message); // Show success message
                     window.location.href = '/'; // Redirect back to the main page
                 } else {
-                    displayErrors(result.errors); // Show error messages from server
+                    // Show error messages from the server
+                    errorMessages.innerHTML = "<ul>";
+                    result.errors.forEach(error => {
+                        errorMessages.innerHTML += `<li>${error}</li>`;
+                    });
+                    errorMessages.innerHTML += "</ul>";
                 }
             } catch (error) {
                 console.error('Error:', error);
