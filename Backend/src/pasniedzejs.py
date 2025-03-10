@@ -324,6 +324,49 @@ def download_pdf():
         cursor.close()
         conn.close()
 
+@pasn_bp.route('/add-seminar', methods=['POST'])
+def add_seminar():
+    data = request.get_json()
+    seminar_name = data.get("name")
+
+    if not seminar_name:
+        return jsonify({"success": False, "message": "Seminar name is required"}), 400
+
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"success": False, "message": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+
+        # Check if a seminar with the same name already exists
+        cursor.execute("SELECT COUNT(*) FROM SEMINARI WHERE NOSAUKUMS = :seminar_name", {"seminar_name": seminar_name})
+        count = cursor.fetchone()[0]
+        if count > 0:
+            return jsonify({"success": False, "message": "Seminar already exists."}), 409
+
+        # If not, insert the new seminar and return the new seminar ID
+        seminar_id = cursor.var(cx_Oracle.NUMBER)
+        cursor.execute(
+            "INSERT INTO SEMINARI (NOSAUKUMS) VALUES (:seminar_name) RETURNING SEMINARANR INTO :seminar_id", 
+            {"seminar_name": seminar_name, "seminar_id": seminar_id}
+        )
+        conn.commit()
+        new_seminar_id = seminar_id.getvalue()[0]
+        return jsonify({"success": True, "id": new_seminar_id, "message": "Seminar added successfully"})
+
+    except cx_Oracle.DatabaseError as e:
+        conn.rollback()
+        error_message = str(e)
+        print(f"Database error: {error_message}")
+        return jsonify({"success": False, "message": "Database query failed", "error": error_message}), 500
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
 @pasn_bp.route('/get-seminar-papers/<int:seminar_nr>', methods=['GET'])
 def get_seminar_papers(seminar_nr):
     conn = get_db_connection()
