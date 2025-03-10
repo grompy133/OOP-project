@@ -1012,8 +1012,7 @@ function addPaperToTable(file) {
 
                     // Send email if checkbox is checked
                     if (sendEmail) {
-                        let mailString = `Hello! You have been added as a new student. Welcome, ${name} ${surname}!`;
-                        window.location.href = `mailto:${email}?subject=New Student&body=${mailString}`;
+                        sendInvitation(email)
                     }
                 } else {
                     alert("Error adding student: " + data.error);
@@ -1035,6 +1034,39 @@ function addPaperToTable(file) {
         // Send email
         function sendEmail(email) {
             window.location.href = `mailto:${email}`;
+        }
+        
+        // Send invitation to instructor (mock-up)
+        function sendInvitation(email) {
+            // Prepare the email subject and body
+            const subject = "Uzaicinājums lietot sistēmu";
+            const body = `
+                Sveicināti!<br><br>
+                Jūs esat uzaicināts lietot mūsu sistēmu. <br>
+                Lai sāktu, lūdzu, noklikšķiniet uz šīs saites: <a href="your_reset_link_here">Noklikšķiniet šeit, lai aktivizētu kontu.</a><br><br>
+                Ja jums ir kādi jautājumi, lūdzu, sazinieties ar mums.
+            `;
+
+            // Send the email
+            fetch('/send_invitation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: email, subject: subject, body: body })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Invitation email sent successfully!");
+                } else {
+                    allert("Failed to send invitation email:" + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error sending invitation email:", error);
+                alert("An error occurred while sending the password reset email.");
+            });
         }
 
         // Edit student
