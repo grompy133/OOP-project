@@ -1,10 +1,16 @@
 from flask import Flask, request, jsonify, render_template, url_for
 import hashlib
+import cx_Oracle
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 import os
 
-app = Flask(__name__)
+
+app = Flask(
+    __name__,
+    template_folder=os.path.abspath('../../Frontend/src/Pages'),  # Veidņu mape
+    static_folder=os.path.abspath('../../Frontend/src/Styles')    # Statisko failu mape
+)
 app.secret_key = 'your_secret_key'
 
 # Mail configuration
@@ -17,28 +23,18 @@ app.config['MAIL_PASSWORD'] = '7P92BrGysP'  # Your password
 app.config['MAIL_DEFAULT_SENDER'] = 'vangogilicock123@inbox.lv'
 mail = Mail(app)
 
-# Database connection parameters
-DB_USERNAME = 'ADMIN'
-DB_PASSWORD = 'msu8nTwIkf6isAR5qBmp'
-DB_DSN = "v9n3ba1erzl8nuba_high"
-DB_WALLET_PASSWORD = "dR3kQd8utf5jLyqRyeFx"
-#DB_WALLET_LOCATION = r"C:\\Users\\Boris\\Desktop\\Wallet_V9N3BA1ERZL8NUBA"
-DB_WALLET_LOCATION = r"D:\\SYSTEM_FOLDERS\\Downloads\\Wallet_V9N3BA1ERZL8NUBA"
-# Function to get database connection
+# Datu bāzes savienojuma parametri
+DB_USERNAME = 'SYS'
+DB_PASSWORD = 'mypassword1'
+DB_DSN = 'localhost:1521/ORCLCDB'
+
+# Funkcija savienošanai ar datu bāzi
 def get_db_connection():
     try:
-        connection = oracledb.connect(
-            config_dir=DB_WALLET_LOCATION,
-            user=DB_USERNAME,
-            password=DB_PASSWORD,
-            dsn=DB_DSN,
-            wallet_location=DB_WALLET_LOCATION,
-            wallet_password=DB_WALLET_PASSWORD
-        )
+        connection = cx_Oracle.connect(user=DB_USERNAME, password=DB_PASSWORD, dsn=DB_DSN, mode=cx_Oracle.SYSDBA)
         return connection
-    except oracledb.DatabaseError as e:
-        error, = e.args
-        print(f"Database connection error: {error.message}")
+    except cx_Oracle.DatabaseError as e:
+        print("Savienošanas kļūda:", e)
         return None
 
 # Funkcija paroles šifrēšanai ar SHA-256
