@@ -39,7 +39,6 @@
             transition: background-color 0.3s ease;
         }
 
-
         .tab h3 {
             margin: 0;
         }
@@ -496,7 +495,6 @@
             cursor: grab;
         }
     </style>
-    
 </head>
 <body>  
     <div class="navbar">
@@ -655,7 +653,6 @@
     </div>
 
     <script>
-
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("button[onclick='openChangeTeamsDialog()']").addEventListener("click", openChangeTeamsDialog);
 });
@@ -777,11 +774,9 @@ function updateStudentGroup(studentId, newGroup) {
     .catch(error => console.error('❌ Failed to update student group', error));
 }
 
-
 function closeChangeTeamsModal() {
     document.getElementById('change-teams-modal').style.display = 'none';
 }
-
 
     function openCreateTeamsModal() {
         let container = document.getElementById("teams-input-container");
@@ -812,7 +807,6 @@ function closeChangeTeamsModal() {
         newInput.className = "team-input";
         container.appendChild(newInput);
     }
-
 
     // Add event listener to the file input
     document.getElementById('paper-file-input').addEventListener('change', function(event) {
@@ -1370,6 +1364,7 @@ function cancelDelete() {
                 headerCells[columnIndex].classList.add("desc");
             }
         }
+        
    // Edit Data function
    function editData(button) {
             const inputs = document.querySelectorAll('#profile input');
@@ -1617,7 +1612,6 @@ function exportStudents() {
             alert('Failed to export students');
         });
 }
-
     </script>
 </body>
 </html>
