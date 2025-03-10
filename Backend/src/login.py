@@ -399,19 +399,19 @@ def register():
             # Prepare the email content
             subject = "Uzaicinājums lietot sistēmu"
             body = f"""
-                Sveicināti, {username}!<br><br>
-                Jūs esat uzaicināts lietot mūsu sistēmu. <br>
-                Lai sāktu, lūdzu, noklikšķiniet uz šīs saites: <br> <a href="{reset_link}">{reset_link}</a>.<br><br>
-                Ja jums ir kādi jautājumi, lūdzu, sazinieties ar mums.
+                Hello, {username}!<br><br>
+                You have been invited to use our system. <br>
+                To start, please click the link bellow: <br> <a href="{reset_link}">{reset_link}</a>.<br><br>
+                If you have any questions, please contact us.
                 """
 
             # Send invitation email
             send_email(email, subject, body)
 
-            return jsonify({'message': f"Administrators {username} veiksmīgi reģistrēts! E-pasts ar uzaicinājumu nosūtīts uz {email}."}), 200
+            return jsonify({'message': f"Administrator {username} is successfully registered! An invitation email has been sent to {email}."}), 200
 
         except cx_Oracle.DatabaseError as e:
-            return jsonify({'errors': [f"Kļūda: {str(e)}"]}), 500
+            return jsonify({'errors': [f"Error: {str(e)}"]}), 500
 
         finally:
             connection.close()
@@ -490,10 +490,10 @@ def send_invitation():
 
                 subject = "Uzaicinājums lietot sistēmu"
                 body = f"""
-                    Sveicināti!<br><br>
-                    Jūs esat uzaicināts lietot mūsu sistēmu. <br>
-                    Lai sāktu, lūdzu, noklikšķiniet uz šīs saites: <br> <a href="{reset_link}">{reset_link}</a>.<br><br>
-                    Ja jums ir kādi jautājumi, lūdzu, sazinieties ar mums.
+                    Hello!<br><br>
+                    You have been invited to use our system. <br>
+                    To start, please click the link bellow: <br> <a href="{reset_link}">{reset_link}</a>.<br><br>
+                    If you have any questions, please contact us.
                     """
                 
                 send_email(email, subject, body)
