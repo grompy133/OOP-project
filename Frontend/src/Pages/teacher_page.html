@@ -790,20 +790,16 @@ function closeChangeTeamsModal() {
 
     function closeCreateTeamsModal() {
         document.getElementById("create-teams-modal").style.display = "none";
-    }
+    }  
 
     function addTeamInput() {
         let container = document.getElementById("teams-input-container");
-        // Check if an input field with the class "team-input" already exists
-        if (container.querySelector(".team-input")) {
-            return;
-        }
         let newInput = document.createElement("input");
         newInput.type = "text";
         newInput.placeholder = "Team Name";
         newInput.className = "team-input";
         container.appendChild(newInput);
-    }   
+    }
 
 
     // Add event listener to the file input
