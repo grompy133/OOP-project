@@ -774,21 +774,13 @@ function updateStudentGroup(studentId, newGroup) {
     .catch(error => console.error('❌ Failed to update student group', error));
 }
 
+
 function closeChangeTeamsModal() {
     document.getElementById('change-teams-modal').style.display = 'none';
 }
 
+
     function openCreateTeamsModal() {
-        let container = document.getElementById("teams-input-container");
-        container.innerHTML = ""; // Clear previous inputs
-
-        // Add a single default input field
-        let newInput = document.createElement("input");
-        newInput.type = "text";
-        newInput.placeholder = "Team Name";
-        newInput.className = "team-input";
-        container.appendChild(newInput);
-
         document.getElementById("create-teams-modal").style.display = "flex";
     }
 
@@ -797,7 +789,7 @@ function closeChangeTeamsModal() {
         // Atiestatīt komandu ievades lauku
         let container = document.getElementById("teams-input-container");
         container.innerHTML = '<input type="text" placeholder="Team Name" class="team-input">';
-    }  
+    }
 
     function addTeamInput() {
         let container = document.getElementById("teams-input-container");
