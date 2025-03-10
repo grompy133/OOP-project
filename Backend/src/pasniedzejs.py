@@ -367,6 +367,24 @@ def add_seminar():
         if conn:
             conn.close()
 
+@pasn_bp.route('/get_seminar', methods=['GET'])
+def get_seminar():
+    """Fetch the list of seminars from the database."""
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Cannot connect to the database"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT SEMINARANR, NOSAUKUMS FROM SEMINARI")
+        seminars = [{"id": row[0], "name": row[1]} for row in cursor]
+        return jsonify(seminars)
+    except cx_Oracle.DatabaseError as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+
 @pasn_bp.route('/get-seminar-papers/<int:seminar_nr>', methods=['GET'])
 def get_seminar_papers(seminar_nr):
     conn = get_db_connection()
