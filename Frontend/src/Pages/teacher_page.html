@@ -904,15 +904,45 @@ function addPaperToTable(file) {
         }
 
         function addNewSeminar() {
-            let seminarName = document.getElementById("seminar-name").value;
-            if (seminarName.trim() !== "") {
-                let seminarList = document.getElementById("seminar-list");
-                let newSeminar = document.createElement("li");
-                let seminarNum = seminarList.children.length + 1;
-                newSeminar.innerHTML = `<a href='#' onclick='openSeminarPopup(${seminarNum}, "${seminarName}")'>${seminarName}</a>`;
-                seminarList.appendChild(newSeminar);
+            let seminarName = document.getElementById("seminar-name").value.trim();
+
+            if (seminarName === "") {
+                alert("Please enter a seminar name.");
+                return;
             }
-            closeAddSeminarPopup(); // Aizvērt popup pēc semināra pievienošanas
+
+            console.log("Sending seminar:", seminarName); // Debugging output
+
+            fetch('/pasniedzejs/add-seminar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: seminarName })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("Server response:", data);
+                if (data.success) {
+                    let seminarList = document.getElementById("seminar-list");
+                    let newSeminar = document.createElement("li");
+                    let seminarNum = seminarList.children.length + 1;
+                    newSeminar.innerHTML = `<a href='#' onclick='openSeminarPopup(${seminarNum}, "${seminarName}")'>${seminarName}</a>`;
+                    seminarList.appendChild(newSeminar);
+
+                    document.getElementById("seminar-name").value = "";
+                    closeAddSeminarPopup();
+                } else {
+                    alert("Error adding seminar: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error during fetch:", error);
+                alert("An error occurred while adding the seminar.");
+            });
         }
 
         function openSeminarPopup(seminarNum, seminarName) {
