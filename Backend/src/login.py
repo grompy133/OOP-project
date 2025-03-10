@@ -450,7 +450,49 @@ def send_reset_email():
     
     return jsonify({"success": False, "message": "Failed to check email in the database."})
 
+    @app.route('/send_invitation', methods=['POST'])
+def send_invitation():
+    email = request.json.get('email')
+    
+    connection = get_db_connection()
+    if connection:
+        cursor = connection.cursor()
+        try:
+            cursor.execute("""
+                SELECT 'students' AS user_type, STUD_ID AS user_id FROM STUDENTI WHERE EPASTS = :1
+                UNION
+                SELECT 'pasniedzējs' AS user_type, PASN_ID AS user_id FROM PASNIEDZEJI WHERE EPASTS = :1
+                UNION
+                SELECT 'administrators' AS user_type, ADMIN_ID AS user_id FROM ADMINISTRATORS WHERE EPASTS = :1
+            """, (email,))
+            user_data = cursor.fetchone()
+            
+            if user_data:
+                user_type = user_data[0]
+                user_id = user_data[1]
 
+                reset_token = generate_reset_token(user_id, user_type)
+                reset_link = url_for('reset_password_page', token=reset_token, _external=True)
+
+                subject = "Uzaicinājums lietot sistēmu"
+                body = f"""
+                    Sveicināti!<br><br>
+                    Jūs esat uzaicināts lietot mūsu sistēmu. <br>
+                    Lai sāktu, lūdzu, noklikšķiniet uz šīs saites: <br> <a href="{reset_link}">{reset_link}</a>.<br><br>
+                    Ja jums ir kādi jautājumi, lūdzu, sazinieties ar mums.
+                    """
+                
+                send_email(email, subject, body)
+                
+                return jsonify({"success": True, "message": "Invitation email sent successfully!"})
+            else:
+                return jsonify({"success": False, "message": "Email not found."})
+        
+        finally:
+            cursor.close()
+            connection.close()
+    
+    return jsonify({"success": False, "message": "Failed to check email in the database."})
 
 
 if __name__ == '__main__':
