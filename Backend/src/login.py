@@ -387,7 +387,7 @@ def register():
             body = f"""
                 Sveicināti, {username}!<br><br>
                 Jūs esat uzaicināts lietot mūsu sistēmu. <br>
-                Lai sāktu, lūdzu, noklikšķiniet uz šīs saites: <a href="{reset_link}">{reset_link}</a>.<br><br>
+                Lai sāktu, lūdzu, noklikšķiniet uz šīs saites: <br> <a href="{reset_link}">{reset_link}</a>.<br><br>
                 Ja jums ir kādi jautājumi, lūdzu, sazinieties ar mums.
                 """
 
@@ -436,7 +436,7 @@ def send_reset_email():
                 reset_link = url_for('reset_password_page', token=reset_token, _external=True)
 
                 subject = 'Password Reset Request'
-                body=f"Please click the link below to reset your password:\n\n{reset_link}"
+                body=f"Please click the link below to reset your password: <br> {reset_link}"
                 
                 send_email(email, subject, body)
                 
