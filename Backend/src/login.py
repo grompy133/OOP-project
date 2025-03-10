@@ -135,23 +135,31 @@ def index():
 
 @app.route('/login', methods=['POST'])
 def login():
-    email_or_username = request.form.get('email_or_username')
-    password = request.form.get('password')
-    user = User.authenticate(email_or_username, password)  # Authenticate the user
+    try:
+        email_or_username = request.form.get('email_or_username')
+        password = request.form.get('password')
+        user = User.authenticate(email_or_username, password)  # Authenticate user
 
-    if user:
-        session['user_id'] = user.user_id  # Store the user's ID in the session
-        session['user_type'] = user.user_type  # Store the user's type in the session
-        print(f"Session after login: user_id={session['user_id']}, user_type={session['user_type']}")  # Debugging
+        if user:
+            session['user_id'] = user.user_id  # Store user ID in session
+            session['user_type'] = user.user_type  # Store user type
+            print(f"Session after login: user_id={session['user_id']}, user_type={session['user_type']}")  # Debugging
 
-        if user.user_type == 'administrators':
-            return redirect(url_for('admin_page'))  # Redirect to admin page
-        elif user.user_type == 'pasniedzējs':
-            return redirect(url_for('teacher_page'))  # Redirect to teacher page
-        elif user.user_type == 'students':
-            return redirect(url_for('student_page'))  # Redirect to student page
+            # Send JSON response with redirect URL instead of redirecting in Flask
+            if user.user_type == 'administrators':
+                return jsonify({"success": True, "redirect_url": url_for('admin_page')})
+            elif user.user_type == 'pasniedzējs':
+                return jsonify({"success": True, "redirect_url": url_for('teacher_page')})
+            elif user.user_type == 'students':
+                return jsonify({"success": True, "redirect_url": url_for('student_page')})
 
-    return jsonify({"success": False, "message": "Nepareizs lietotājvārds vai parole"}), 401
+        # If authentication fails
+        print("Authentication failed: Invalid username or password")  # Debugging
+        return jsonify({"success": False, "message": "Wrong email or password"}), 401
+
+    except Exception as e:
+        print(f"Error in /login route: {e}")  # Print the actual error for debugging
+        return jsonify({"success": False, "message": "Internal server error"}), 500
 
 @app.route('/teacher_page')
 def teacher_page():
