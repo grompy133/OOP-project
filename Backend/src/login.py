@@ -77,7 +77,21 @@ def verify_reset_token(token, expiration=3600):
             return None, None
     except (BadSignature, TypeError):
         return None, None
+        
+# E-pasta sūtīšanas funkcija
+def send_email(to_email, subject, body):
+    msg = Message(subject, recipients=[to_email])
+    msg.html = body
 
+    try:
+        mail.send(msg)
+    except Exception as e:
+        print(f"Kļūda, sūtot e-pastu: {e}")   
+
+# Funkcija paroles šifrēšanai ar SHA-256
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+    
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(pasn_bp, url_prefix='/pasniedzejs')
 app.register_blueprint(stud_bp, url_prefix='/students')
