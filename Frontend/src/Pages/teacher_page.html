@@ -1269,6 +1269,28 @@ function cancelDelete() {
         }
         fetchStudents();
 
+        // Fetch seminars when the page loads
+        function fetchSeminars() {
+            fetch('/pasniedzejs/get_seminar')
+                .then(response => response.json())
+                .then(data => {
+                    let seminarList = document.getElementById("seminar-list");
+                    seminarList.innerHTML = ""; // Clear current list
+
+                    data.forEach(seminar => {
+                        // Create a new list item for each seminar
+                        let listItem = document.createElement("li");
+                        listItem.innerHTML = `<a href="#" onclick="openSeminarPopup(${seminar.id}, '${seminar.name}')">${seminar.name}</a>`;
+                        seminarList.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching seminars:", error);
+                    alert("An error occurred while fetching the seminars.");
+                });
+        }
+        fetchSeminars();
+
         document.getElementById('file-input').addEventListener('change', function(event) {
             let file = event.target.files[0];
             let formData = new FormData();
