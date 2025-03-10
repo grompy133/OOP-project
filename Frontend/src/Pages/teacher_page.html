@@ -784,6 +784,16 @@ function closeChangeTeamsModal() {
 
 
     function openCreateTeamsModal() {
+        let container = document.getElementById("teams-input-container");
+        container.innerHTML = ""; // Clear previous inputs
+
+        // Add a single default input field
+        let newInput = document.createElement("input");
+        newInput.type = "text";
+        newInput.placeholder = "Team Name";
+        newInput.className = "team-input";
+        container.appendChild(newInput);
+
         document.getElementById("create-teams-modal").style.display = "flex";
     }
 
