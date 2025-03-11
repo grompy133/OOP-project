@@ -40,43 +40,43 @@
         }
 
         // Form Validation Function
-        function validateForm(event) {
+            document.getElementById("signinForm").addEventListener("submit", function(event) {
             event.preventDefault(); // Prevent form submission
-            let valid = true;
-            let errorMessages = [];
-            
-            // Get the input values
+
             let email = document.getElementById("email").value;
             let password = document.getElementById("password").value;
-            
-            // Clear previous error messages
-            document.getElementById("errorMessages").innerHTML = "";
+            let errorMessages = document.getElementById("errorMessages");
 
-            // Validate email
-            let emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-            if (!emailPattern.test(email)) {
-                valid = false;
-                errorMessages.push("Please enter a valid email.");
-            }
+            // Clear previous errors
+            errorMessages.innerHTML = "";
 
-            // Display error messages if any
-            if (!valid) {
-                let errorMessageHTML = "<ul>";
-                errorMessages.forEach(function(msg) {
-                    errorMessageHTML += "<li>" + msg + "</li>";
-                });
-                errorMessageHTML += "</ul>";
-                document.getElementById("errorMessages").innerHTML = errorMessageHTML;
-            }
 
-            // If valid, submit the form
-            if (valid) {
-                // Manually submit the form
-                document.getElementById("signinForm").submit();
-            }
+            // Send login request via fetch
+            fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    email_or_username: email,
+                    password: password
+                })
+            })
+            .then(response => response.json()) // Parse JSON response
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirect_url; // Redirect user if login is successful
+                } else {
+                    // Show the error message from the server response
+                    errorMessages.innerHTML = `<p style="color: red;">${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error("Login error:", error);
+                errorMessages.innerHTML = "<p style='color: red;'>Server error. Please try again later.</p>";
+            });
+        });
 
-            return valid; // If valid is true, the form will be submitted, otherwise it won't
-        }
 
         document.getElementById("changePass").addEventListener("click", function(event) {
             event.preventDefault();
