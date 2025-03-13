@@ -800,27 +800,7 @@ function closeChangeTeamsModal() {
         container.appendChild(newInput);
     }
 
-    // Add event listener to the file input
-    document.getElementById('paper-file-input').addEventListener('change', function(event) {
-    const files = event.target.files;
-
-    // Pārbauda, vai fails ir izvēlēts
-    if (files.length === 0) {
-        alert('Lūdzu, izvēlieties PDF failu!'); 
-        return;
-    }
-
-    // Pārbauda, vai fails ir PDF formātā
-    if (files[0].type !== 'application/pdf') {
-        alert('Lūdzu, izvēlieties tikai PDF failu!'); 
-        return;
-    }
-
-    // Augšupielādē failu
-    uploadFile(files[0]);
-});
-
-function uploadFiles(files) {
+    function uploadFiles(files) {
     const formData = new FormData();
 
     // Pievienojam katru failu FormData objektam
@@ -846,12 +826,12 @@ function uploadFiles(files) {
                 addPaperToTable(data.file);
             }
         } else {
-            alert('Kļūda: ' + data.error);
+            alert('Error: ' + data.error);
         }
     })
     .catch(error => {
-        console.error('Kļūda:', error);
-        alert('Kļūda augšupielādējot PDF failus.');
+        console.error('Error:', error);
+        alert('Error uploading PDF files!');
     });
 }
 
@@ -860,14 +840,14 @@ document.getElementById('paper-file-input').addEventListener('change', function(
 
     // Pārbauda, vai faili ir izvēlēti
     if (files.length === 0) {
-        alert('Lūdzu, izvēlieties PDF failus!'); 
+        alert('Please choose PDF files!'); 
         return;
     }
 
     // Pārbauda, vai visi faili ir PDF formātā
     for (let i = 0; i < files.length; i++) {
         if (files[i].type !== 'application/pdf') {
-            alert('Lūdzu, izvēlieties tikai PDF failus!'); 
+            alert('Please select PDF files only!'); 
             return;
         }
     }
@@ -875,7 +855,7 @@ document.getElementById('paper-file-input').addEventListener('change', function(
     // Augšupielādē failus
     uploadFiles(files);
 });
-
+     
 function addPaperToTable(file) {
     const tableBody = document.getElementById('paper-table-body');
     const newRow = tableBody.insertRow();
