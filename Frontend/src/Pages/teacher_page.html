@@ -605,7 +605,7 @@
         <span class="close-btn" onclick="closeModal()">&times;</span>
         <div class="seminar-popup-buttons">
             <button>Evaluation parameters</button>
-            <button>Dates</button>
+            <button onclick="setDatesAndTimes()">Dates&Times</button>
             <button>Download presentations</button>
             <button onclick="openChangeTeamsDialog()">Change teams</button>
             <button onclick="openCreateTeamsModal()">Create teams</button> </div>
@@ -653,6 +653,69 @@
     </div>
 
     <script>
+
+function setDatesAndTimes() {
+    // Create a popup container
+    let popup = document.createElement("div");
+    popup.classList.add("popup-container");
+
+    // Set inner HTML with the form
+    popup.innerHTML = `
+        <div class="modal-content">
+            <span class="close-btn" onclick="closePopup()">&times;</span>
+            <h3>Add dates and deadlines</h3>
+            <label>Seminar Date and Time</label>
+            <input type="date"><input type="time">
+            <br>
+            <label>Deadline for choosing paper</label>
+            <input type="date"><input type="time">
+            <br>
+            <label>Deadline for uploading presentation</label>
+            <input type="date"><input type="time">
+            <br>
+            <button class="register-btn" onclick="updateDates()">Update</button>
+        </div>
+    `;
+
+    // Append popup to body
+    document.body.appendChild(popup);
+}
+
+// Function to close the popup
+function closePopup() {
+    let popup = document.querySelector(".popup-container");
+    if (popup) popup.remove();
+}
+
+function updateDates() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Noņemam stundas, lai salīdzinātu tikai datumu
+
+    // Iegūst visus datuma ievades laukus
+    const dateInputs = document.querySelectorAll(".input-row input");
+
+    for (const input of dateInputs) {
+        const inputDate = new Date(input.value);
+
+        // Pārbauda, vai ievadītais datums ir derīgs un nav pagātnē
+        if (isNaN(inputDate)) {
+            alert("Kļūda: Lūdzu, ievadiet derīgu datumu!");
+            return;
+        }
+
+        if (inputDate < today) {
+            alert("Kļūda: Nevar ievadīt laiku un datumu pagātnē!");
+            return;
+        }
+    }
+
+    alert("Datumi veiksmīgi atjaunināti!");
+    closePopup();
+}
+
+
+
+
 document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("button[onclick='openChangeTeamsDialog()']").addEventListener("click", openChangeTeamsDialog);
 });

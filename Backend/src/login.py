@@ -31,7 +31,8 @@ DB_USERNAME = 'ADMIN'
 DB_PASSWORD = 'msu8nTwIkf6isAR5qBmp'
 DB_DSN = "v9n3ba1erzl8nuba_high"
 DB_WALLET_PASSWORD = "dR3kQd8utf5jLyqRyeFx"
-DB_WALLET_LOCATION = r"C:\\Users\\Boris\\Desktop\\Wallet_V9N3BA1ERZL8NUBA"
+#DB_WALLET_LOCATION = r"C:\\Users\\Boris\\Desktop\\Wallet_V9N3BA1ERZL8NUBA"
+DB_WALLET_LOCATION = r"D:\\SYSTEM_FOLDERS\\Downloads\\Wallet_V9N3BA1ERZL8NUBA"
 #6
 
 # Function to get database connection
@@ -464,7 +465,7 @@ def send_reset_email():
     
     return jsonify({"success": False, "message": "Failed to check email in the database."})
 
-    @app.route('/send_invitation', methods=['POST'])
+@app.route('/send_invitation', methods=['POST'])
 def send_invitation():
     email = request.json.get('email')
     
