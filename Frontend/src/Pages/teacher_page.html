@@ -257,7 +257,32 @@
             font-size: 18px;
         }
 
+		        /* Confirmation Dialog */
+        #confirmation-dialog-all {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+        }
+
         #confirmation-dialog button {
+            background-color: #f0ad4e;
+            color: white;
+            border: none;
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+		#confirmation-dialog-all button {
             background-color: #f0ad4e;
             color: white;
             border: none;
@@ -534,6 +559,7 @@
             <input type="file" id="file-input" accept=".xlsx" style="display:none;">
             <button class="add-btn" onclick="document.getElementById('file-input').click()">Import Students</button>
             <button class="add-btn" onclick="exportStudents()">Export Students</button>
+			<button class="add-btn" onclick="confirmDeleteAll()">Clear Student List</button>
             <div id="add-students-modal" class="modal" style="display:none;">
                 <!-- Modal content for adding students manually -->
                 <div class="modal-content">
@@ -652,6 +678,13 @@
         <button onclick="cancelDelete()">No</button>
     </div>
 
+	<!-- Confirmation Dialog 2 -->
+	<div id="confirmation-dialog-all" class="confirmation-dialog" style="display: none;">
+    	<p>Are you sure you want to delete all students?</p>
+    	<button onclick="deleteAllStudents()">Yes, delete all</button>
+    	<button onclick="cancelDeleteAll()">Cancel</button>
+	</div>
+    
     <script>
 
 function setDatesAndTimes() {
@@ -1287,6 +1320,48 @@ function cancelDelete() {
 
         // Initialize the page with the Students tab open
         openTab('students');
+
+
+
+		// Confirm deletion of all students
+function confirmDeleteAll() {
+    // Show confirmation dialog
+    document.getElementById("confirmation-dialog-all").style.display = "flex";
+}
+
+// Izdēst visus studentus 
+function deleteAllStudents() {
+    fetch('/pasniedzejs/delete_all_students', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => {
+        console.log("Response:", response); // Для отладки
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            window.location.reload(); // Обновить страницу после удаления
+        } else {
+            alert("Error: " + data.error);
+        }
+    })
+    .catch(error => {
+        console.error("Error during deleating list of students:", error);
+        alert("Error accured while deleating student list.");
+    });
+}
+
+// Cancel delete action
+function cancelDeleteAll() {
+    document.getElementById("confirmation-dialog-all").style.display = "none";
+}
+
+	// Cancel delete action
+function cancelDeleteAll() {
+    document.getElementById("confirmation-dialog-all").style.display = "none";
+}
+
 
         // Fetch students when the page loads
         function fetchStudents() {

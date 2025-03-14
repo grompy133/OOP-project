@@ -661,6 +661,33 @@ def get_student_groups():
     finally:
         cursor.close()
         conn.close()
+        
+        
+        
+        
+@pasn_bp.route('/delete_all_students', methods=['DELETE'])
+def delete_all_students():
+    """Удалить всех студентов из базы данных."""
+    conn = get_db_connection()
+    if conn is None:
+        print("Ошибка: Не удалось подключиться к БД")  # Лог в консоль
+        return jsonify({"error": "Cannot connect to the database"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM STUDENTI")  # Удаляем все записи из таблицы STUDENTI
+        conn.commit()
+
+        print("Все студенты удалены!")  # Отладка
+        return jsonify({"success": True, "message": "All students deleted successfully!"})
+    except oracledb.DatabaseError as e:
+        conn.rollback()
+        print("Ошибка базы данных:", str(e))  # Отладка
+        return jsonify({"error": str(e)}), 500
+    finally:
+        cursor.close()
+        conn.close()
+                
 
 
 @pasn_bp.route('/update-student-group', methods=['POST'])
