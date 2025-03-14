@@ -625,15 +625,17 @@ function sendUpdatedProfileData(data) {
         }
 
         function fetchPapers() {
-    		fetch('/students/get-papers')
-        	.then(response => response.json())
-        	.then(data => {
-            	if (data.papers) {
-                	renderPapers(data.papers);
-            	}
-        	})
-        	.catch(error => console.error("Error fetching papers:", error));
-		}
+            fetch('/students/get-papers')
+            .then(response => response.json())
+            .then(data => {
+                if (data.papers) {
+                    const loggedInStudentId = document.getElementById('student-id').value;
+                    chosenPapers = data.papers.filter(paper => paper.student_id == loggedInStudentId).length;
+                    renderPapers(data.papers);
+                }
+            })
+            .catch(error => console.error("Error fetching papers:", error));
+        }
 
 function renderPapers(papers) {
     const tbody = document.getElementById("papers-table-body");
@@ -716,37 +718,6 @@ function declinePaper(paperId) {
         });
 
 
-		function choosePaper(paperId) {
-			const studentId = document.getElementById('student-id').value; // Get student_id from the hidden input
-			console.log("Student ID:", studentId); // Debugging
-			console.log("Paper ID:", paperId); // Debugging
-		
-			fetch('/students/choose-paper/${paperId}', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ student_id: studentId }), // Send student_id in the request body
-			})
-			.then(response => {
-				console.log("Response status:", response.status); // Debugging
-				return response.json();
-			})
-			.then(data => {
-				console.log("Response data:", data); // Debugging
-				if (data.success) {
-					alert("Paper chosen successfully!");
-					fetchPapers(); // Refresh the list of papers
-				} else {
-					alert("Failed to choose paper. Please try again.");
-				}
-			})
-			.catch(error => {
-				console.error("Error choosing paper:", error);
-				alert("An error occurred. Please try again.");
-			});
-		}
-
 		function fetchSeminars() {
 			fetch('/students/get-seminars')
 				.then(response => response.json())
@@ -776,11 +747,10 @@ function declinePaper(paperId) {
 			});
 		}
 
-        let chosenPapers = 0; // Skaits izvēlētajiem rakstiem
+let chosenPapers = 0; // Skaits izvēlētajiem rakstiem
 
 function choosePaper(paperId) {
     const studentId = document.getElementById('student-id').value; // Iegūst student_id
-
 
     if (chosenPapers >= 3) {
         alert("You can't choose more than 3 papers!");

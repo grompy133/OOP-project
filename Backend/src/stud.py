@@ -134,35 +134,6 @@ def decline_paper(paper_id):
         cursor.close()
         conn.close()
 
-
-@stud_bp.route('/choose-paper/<int:paper_id>', methods=['POST'])
-def _paper(paper_id):
-    conn = get_db_connection()
-    if conn is None:
-        return jsonify({"error": "Database connection failed"}), 500
-
-    try:
-        # Get student_id from the request body
-        data = request.get_json()
-        student_id = data.get('student_id')
-
-        if not student_id:
-            return jsonify({"error": "Student ID is required"}), 400
-
-        cursor = conn.cursor()
-        cursor.execute("UPDATE RAKSTI SET STUD_ID = :student_id WHERE RAKSTANR = :paper_id", 
-                       {"student_id": student_id, "paper_id": paper_id})
-        conn.commit()
-        return jsonify({"success": True})
-    
-    except cx_Oracle.DatabaseError as e:
-        print("Database error:", e)  # Debugging
-        return jsonify({"error": "Database query failed"}), 500
-    
-    finally:
-        cursor.close()
-        conn.close()
-
 @stud_bp.route('/edit_profile', methods=['PUT'])
 def edit_profile():
     """Edit an existing profile in the database."""
@@ -227,6 +198,15 @@ def choose_paper(paper_id):
             return jsonify({"error": "Student ID is required"}), 400
 
         cursor = conn.cursor()
+
+        # Pārbaudiet, cik rakstus students jau ir izvēlējies
+        cursor.execute("SELECT COUNT(*) FROM RAKSTI WHERE STUD_ID = :student_id", {"student_id": student_id})
+        count = cursor.fetchone()[0]
+
+        if count >= 3:
+            return jsonify({"error": "You can't choose more than 3 papers"}), 400
+
+        # Ja students var izvēlēties rakstu, atjauniniet RAKSTI tabulu
         cursor.execute("UPDATE RAKSTI SET STUD_ID = :student_id WHERE RAKSTANR = :paper_id", 
                        {"student_id": student_id, "paper_id": paper_id})
         conn.commit()
