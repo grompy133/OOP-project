@@ -86,7 +86,9 @@ def add_student():
     finally:
         cursor.close()
         conn.close()
-        
+      
+
+#Funkcija kas dzēš studentus PA VIENAM
 @pasn_bp.route('/delete_student', methods=['DELETE'])
 def delete_instructor():
     """Delete an instructor from the database by name and surname."""
@@ -96,7 +98,7 @@ def delete_instructor():
     surname = data.get('surname')
 
     if not name or not surname:
-        return jsonify({"error": "Name and surname are required!"}), 400
+        return jsonify({"error": "VARDS and UZVARDS are required!"}), 400
 
     conn = get_db_connection()
     if conn is None:
@@ -104,23 +106,38 @@ def delete_instructor():
 
     try:
         cursor = conn.cursor()
-        cursor.execute(
-            "DELETE FROM STUDENTI WHERE VARDS = :1 AND UZVARDS = :2",
-            (name, surname)
-        )
-        conn.commit()
 
-        # Check if any row was deleted
-        if cursor.rowcount == 0:
+        cursor.execute("""
+            SELECT STUD_ID FROM STUDENTI WHERE VARDS = :VARDS AND UZVARDS = :UZVARDS
+        """, {"VARDS": name, "UZVARDS": surname})
+        student = cursor.fetchone()
+
+        if not student:
             return jsonify({"error": "Student not found"}), 404
 
-        return jsonify({"success": True, "message": "Student deleted successfully!"})
-    except cx_Oracle.DatabaseError as e:
+        student_id = student[0]
+
+        cursor.execute("""
+            DELETE FROM RAKSTI WHERE STUD_ID = :STUD_ID
+        """, {"STUD_ID": student_id})
+
+        cursor.execute("""
+            DELETE FROM STUDENTI WHERE STUD_ID = :STUD_ID
+        """, {"STUD_ID": student_id})
+
+        conn.commit()
+        print(f"Student {name} {surname} and their selected raksti deleted!")
+        return jsonify({"success": True, "message": f"Student {name} {surname} and their selected raksti deleted successfully!"})
+
+    except oracledb.DatabaseError as e:
         conn.rollback()
+        print("Database error:", str(e))
         return jsonify({"error": str(e)}), 500
+
     finally:
         cursor.close()
         conn.close()
+
 
 
 @pasn_bp.route('/edit_student', methods=['PUT'])
