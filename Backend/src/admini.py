@@ -44,7 +44,7 @@ def get_admins():
         cursor.execute("SELECT PASN_ID, VARDS, UZVARDS, EPASTS FROM PASNIEDZEJI")
         admins = [{"id": row[0], "name": row[1], "surname": row[2], "email": row[3]} for row in cursor]
         return jsonify(admins)
-    except cx_Oracle.DatabaseError as e:
+    except oracledb.DatabaseError as e:
         return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
@@ -71,7 +71,7 @@ def add_instructor():
         cursor = conn.cursor()
 
         # Define a variable to hold the returned ID
-        instructor_id = cursor.var(cx_Oracle.NUMBER)
+        instructor_id = cursor.var(oracledb.NUMBER)
 
         # Insert the new instructor and return the generated ID
         cursor.execute(
@@ -88,7 +88,7 @@ def add_instructor():
             "id": instructor_id,
             "message": "Instructor added successfully!"
         })
-    except cx_Oracle.DatabaseError as e:
+    except oracledb.DatabaseError as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 500
     finally:
@@ -124,7 +124,7 @@ def delete_instructor():
             return jsonify({"error": "Instructor not found"}), 404
 
         return jsonify({"success": True, "message": "Instructor deleted successfully!"})
-    except cx_Oracle.DatabaseError as e:
+    except oracledb.DatabaseError as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 500
     finally:
@@ -170,7 +170,7 @@ def edit_instructor():
         conn.commit()
 
         return jsonify({"success": True, "message": "Instructor updated successfully!"})
-    except cx_Oracle.DatabaseError as e:
+    except oracledb.DatabaseError as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 500
     finally:
@@ -214,7 +214,7 @@ def edit_profile():
         conn.commit()
 
         return jsonify({"success": True, "message": "Admin updated successfully!"})
-    except cx_Oracle.DatabaseError as e:
+    except oracledb.DatabaseError as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 500
     finally:

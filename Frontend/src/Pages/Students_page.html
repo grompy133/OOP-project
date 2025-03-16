@@ -505,9 +505,9 @@ th:first-child::after {
                 <table id="seminars-table">
                     <thead>
                         <tr>
-                            <th>Nosaukums</th>
-                            <th>Datums</th>
-							<th>Vieta</th>
+                            <th>Seminar name</th>
+                            <th>Time and date</th>
+							<th>Place</th>
                         </tr>
                     </thead>
                     <tbody id="seminars-table-body">
@@ -538,38 +538,38 @@ th:first-child::after {
     <script>
 
 ///Funkcija lai parādīt seminārus semināru sadaļā
-function fetchSeminars() {
-    fetch('/students/get-seminars')  // Запрашиваем семинары
+function fetchSeminars(studentId) {
+    fetch(`/students/get-seminars?student_id=${studentId}`) // Передаем ID студента
         .then(response => response.json())
         .then(data => {
-            console.log(data);  // Добавьте для проверки данных, которые пришли с сервера
+            console.log("Загруженные семинары:", data);
             if (data.seminars) {
-                chosenSeminars = data.seminars.length;
-                renderSeminars(data.seminars);  // Вызываем функцию отрисовки
+                renderSeminars(data.seminars);
             }
         })
-        .catch(error => console.error("Error fetching seminars:", error));
+        .catch(error => console.error("Ошибка загрузки семинаров:", error));
 }
 
 function renderSeminars(seminars) {
-    const tableBody = document.getElementById("seminars-table-body");
-    tableBody.innerHTML = ""; // Очищаем таблицу перед вставкой данных
+    const tbody = document.getElementById("seminars-table-body");
+    tbody.innerHTML = ""; // Очищаем таблицу перед вставкой данных
 
     seminars.forEach(seminar => {
-        // Проверяем, что объект seminar содержит только нужные ключи
-        const { name, date, place } = seminar;  // Деструктуризация для получения нужных полей
         const row = document.createElement("tr");
+
         row.innerHTML = `
-            <td>${name}</td>
-            <td>${time}</td>
-            <td>${place}</td>
+            <td>${seminar.name}</td>
+            <td>${seminar.time || "Дата не указана"}</td>
+            <td>${seminar.place}</td>
         `;
-        tableBody.appendChild(row);
+
+        tbody.appendChild(row);
     });
 }
 
-document.addEventListener("DOMContentLoaded", function() {
-    fetchSeminars();  // Загружаем семинары при загрузке страницы
+document.addEventListener("DOMContentLoaded", function () {
+    const studentId = 1; // Здесь должен быть ID авторизованного студента
+    fetchSeminars(studentId);
 });
 
 

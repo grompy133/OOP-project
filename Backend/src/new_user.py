@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, render_template, url_for
 import hashlib
 import cx_Oracle
+import oracledb 
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, BadSignature
 import os
@@ -21,21 +22,35 @@ app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = 'vangogilicock123@inbox.lv'  # Your email
 app.config['MAIL_PASSWORD'] = '7P92BrGysP'  # Your password
 app.config['MAIL_DEFAULT_SENDER'] = 'vangogilicock123@inbox.lv'
+
 mail = Mail(app)
 
-# Datu bāzes savienojuma parametri
-DB_USERNAME = 'SYS'
-DB_PASSWORD = 'mypassword1'
-DB_DSN = 'localhost:1521/ORCLCDB'
+# Database connection parameters
+DB_USERNAME = 'ADMIN'
+DB_PASSWORD = 'msu8nTwIkf6isAR5qBmp'
+DB_DSN = "v9n3ba1erzl8nuba_high"
+DB_WALLET_PASSWORD = "dR3kQd8utf5jLyqRyeFx"
+DB_WALLET_LOCATION = r"../../Wallet_V9N3BA1ERZL8NUBA"
 
-# Funkcija savienošanai ar datu bāzi
+# Function to get database connection
 def get_db_connection():
     try:
-        connection = cx_Oracle.connect(user=DB_USERNAME, password=DB_PASSWORD, dsn=DB_DSN, mode=cx_Oracle.SYSDBA)
+        connection = oracledb.connect(
+            config_dir=DB_WALLET_LOCATION,
+            user=DB_USERNAME,
+            password=DB_PASSWORD,
+            dsn=DB_DSN,
+            wallet_location=DB_WALLET_LOCATION,
+            wallet_password=DB_WALLET_PASSWORD
+        )
         return connection
-    except cx_Oracle.DatabaseError as e:
-        print("Savienošanas kļūda:", e)
-        return None
+    except oracledb.DatabaseError as e:
+        error, = e.args
+        print(f"Database connection error: {error.message}")
+        return None 
+
+# Create a Blueprint
+stud_bp = Blueprint('students', __name__)
 
 # Funkcija paroles šifrēšanai ar SHA-256
 def hash_password(password):
