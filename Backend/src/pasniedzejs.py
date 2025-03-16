@@ -53,43 +53,32 @@ def get_students():
         cursor.close()
         conn.close()
 
-@admin_bp.route('/add_instructor', methods=['POST'])
-def add_instructor():
-    """Add a new instructor to the database."""
+@pasn_bp.route('/add_student', methods=['POST'])
+def add_student():
     data = request.json
     name = data.get('name')
     surname = data.get('surname')
     email = data.get('email')
 
-    # Validate input data
     if not name or not surname or not email:
         return jsonify({"error": "All fields are required!"}), 400
 
-    # Get database connection
     conn = get_db_connection()
     if conn is None:
         return jsonify({"error": "Cannot connect to the database"}), 500
-
     try:
         cursor = conn.cursor()
-
-        # Define a variable to hold the returned ID
-        instructor_id = cursor.var(cx_Oracle.NUMBER)
-
-        # Insert the new instructor and return the generated ID
+        student_id = cursor.var(cx_Oracle.NUMBER)
         cursor.execute(
-            "INSERT INTO PASNIEDZEJI (VARDS, UZVARDS, EPASTS) VALUES (:1, :2, :3) RETURNING PASN_ID INTO :4",
-            (name, surname, email, instructor_id)
+            "INSERT INTO STUDENTI (VARDS, UZVARDS, EPASTS) VALUES (:name, :surname, :email) RETURNING STUD_ID INTO :student_id",
+            {"name": name, "surname": surname, "email": email, "student_id": student_id}
         )
         conn.commit()
-
-        # Fetch the generated ID
-        instructor_id = instructor_id.getvalue()[0]
-
+        student_id = student_id.getvalue()[0]
         return jsonify({
             "success": True,
-            "id": instructor_id,
-            "message": "Instructor added successfully!"
+            "id": student_id,
+            "message": "Student added successfully!"
         })
     except cx_Oracle.DatabaseError as e:
         conn.rollback()
