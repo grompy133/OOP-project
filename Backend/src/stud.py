@@ -122,8 +122,7 @@ def get_seminars():
         conn.close()
         
         
-        
-
+         
 # Maršruts, lai atsauktu rakstu
 @stud_bp.route('/decline-paper/<int:paper_id>', methods=['POST'])
 def decline_paper(paper_id):
