@@ -117,9 +117,11 @@ def delete_instructor():
 
         student_id = student[0]
 
+
         cursor.execute("""
             DELETE FROM RAKSTI WHERE STUD_ID = :STUD_ID
         """, {"STUD_ID": student_id})
+
 
         cursor.execute("""
             DELETE FROM STUDENTI WHERE STUD_ID = :STUD_ID
@@ -137,6 +139,8 @@ def delete_instructor():
     finally:
         cursor.close()
         conn.close()
+
+
 
 
 

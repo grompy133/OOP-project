@@ -91,6 +91,38 @@ def get_papers():
     finally:
         cursor.close()
         conn.close()
+        
+        
+# API, lai iegūtu visus seminārus no SEMINARI tabulas
+@stud_bp.route('/get-seminars', methods=['GET'])
+def get_seminars():
+    conn = get_db_connection()
+    if conn is None:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT NOSAUKUMS, DATUMS, VIETA FROM SEMINARI")
+
+        seminars = []
+        for row in cursor:
+            seminars.append({
+                    "name": row[0],         
+    				"time": row[1],   
+    				"place": row[2],
+            })
+
+        return jsonify({"seminars": seminars})
+
+    except cx_Oracle.DatabaseError as e:
+        return jsonify({"error": "Database query failed"}), 500
+    
+    finally:
+        cursor.close()
+        conn.close()
+        
+        
+        
 
 # Maršruts, lai atsauktu rakstu
 @stud_bp.route('/decline-paper/<int:paper_id>', methods=['POST'])

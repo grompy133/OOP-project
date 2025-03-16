@@ -76,20 +76,17 @@
 }
 
 #seminars-table th:nth-child(1) {
-    width: 20%; /* Уже для "Seminar name" */
+    width: 33%; /* Уже для "Seminar name" */
 }
 
 #seminars-table th:nth-child(2) {
-    width: 20%; /* Шире для "Time" */
+    width: 33%; /* Шире для "Time" */
 }
 
 #seminars-table th:nth-child(3) {
-    width: 25%; /* Например, "Place" */
+    width: 33%; /* Например, "Place" */
 }
 
-#seminars-table th:nth-child(4) {
-    width: 35%; /* "Presentation" */
-}
 
         /* Add Seminar Popup */
         #add-seminar-popup {
@@ -508,10 +505,9 @@ th:first-child::after {
                 <table id="seminars-table">
                     <thead>
                         <tr>
-                            <th>Seminar name</th>
-                            <th>Time</th>
-                            <th>Place</th>
-							<th>Presentation</th>
+                            <th>Nosaukums</th>
+                            <th>Datums</th>
+							<th>Vieta</th>
                         </tr>
                     </thead>
                     <tbody id="seminars-table-body">
@@ -540,6 +536,42 @@ th:first-child::after {
     </div>
     
     <script>
+
+///Funkcija lai parādīt seminārus semināru sadaļā
+function fetchSeminars() {
+    fetch('/students/get-seminars')  // Запрашиваем семинары
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);  // Добавьте для проверки данных, которые пришли с сервера
+            if (data.seminars) {
+                chosenSeminars = data.seminars.length;
+                renderSeminars(data.seminars);  // Вызываем функцию отрисовки
+            }
+        })
+        .catch(error => console.error("Error fetching seminars:", error));
+}
+
+function renderSeminars(seminars) {
+    const tableBody = document.getElementById("seminars-table-body");
+    tableBody.innerHTML = ""; // Очищаем таблицу перед вставкой данных
+
+    seminars.forEach(seminar => {
+        // Проверяем, что объект seminar содержит только нужные ключи
+        const { name, date, place } = seminar;  // Деструктуризация для получения нужных полей
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${name}</td>
+            <td>${time}</td>
+            <td>${place}</td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    fetchSeminars();  // Загружаем семинары при загрузке страницы
+});
+
 
 /// Edit Data
 function editData(button) {
@@ -732,7 +764,7 @@ function declinePaper(paperId) {
 		
 		function renderSeminars(seminars) {
 			const tbody = document.getElementById("seminars-table-body");
-			tbody.innerHTML = "";  // Очищаем таблицу перед добавлением новых данных
+			tbody.innerHTML = ""; 
 		
 			seminars.forEach((seminar, index) => {
 				const row = document.createElement("tr");
@@ -741,7 +773,6 @@ function declinePaper(paperId) {
 					<td>${seminar.name}</td>
 					<td>${seminar.time}</td>
 					<td>${seminar.place}</td>
-					<td>${seminar.presentation}</td>
 				`;
 		
 				tbody.appendChild(row);
