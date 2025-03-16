@@ -721,32 +721,30 @@ function closePopup() {
 }
 
 function updateDates() {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Noņemam stundas, lai salīdzinātu tikai datumu
+    const now = new Date(); // Pašreizējais datums un laiks
+    const inputs = document.querySelectorAll(".modal-content input[type='date'], .modal-content input[type='time']");
 
-    // Iegūst visus datuma ievades laukus
-    const dateInputs = document.querySelectorAll(".input-row input");
+    for (let i = 0; i < inputs.length; i += 2) { 
+        const dateInput = inputs[i];
+        const timeInput = inputs[i + 1];
 
-    for (const input of dateInputs) {
-        const inputDate = new Date(input.value);
-
-        // Pārbauda, vai ievadītais datums ir derīgs un nav pagātnē
-        if (isNaN(inputDate)) {
-            alert("Kļūda: Lūdzu, ievadiet derīgu datumu!");
+        if (!dateInput.value || !timeInput.value) {
+            alert("Error: Please fill all Dates and Times!");
             return;
         }
 
-        if (inputDate < today) {
-            alert("Kļūda: Nevar ievadīt laiku un datumu pagātnē!");
+        // Izveido pilnu datuma un laika objektu
+        const inputDateTime = new Date(`${dateInput.value}T${timeInput.value}`);
+
+        if (inputDateTime < now) {
+            alert("Error: Can't enter Date or Time in past!");
             return;
         }
     }
 
-    alert("Datumi veiksmīgi atjaunināti!");
+    alert("Dates updated successfully!");
     closePopup();
 }
-
-
 
 
 document.addEventListener("DOMContentLoaded", () => {
